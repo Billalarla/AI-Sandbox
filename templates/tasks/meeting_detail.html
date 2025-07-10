@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ meeting.subject }} - Meeting Details - WindCRM{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'tasks:meeting_list' %}">Meetings</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ meeting.subject }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-calendar-alt text-primary"></i> {{ meeting.subject }}</h1>
+    <div class="btn-group" role="group">
+        {% if meeting.meeting_url %}
+        <a href="{{ meeting.meeting_url }}" target="_blank" class="btn btn-success">
+            <i class="fas fa-video"></i> Join Meeting
+        </a>
+        {% endif %}
+        <a href="{% url 'tasks:meeting_edit' meeting.pk %}" class="btn btn-outline-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'tasks:meeting_delete' meeting.pk %}" class="btn btn-outline-danger">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Meeting Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>Subject:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ meeting.subject }}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>Type:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        <span class="badge bg-info">{{ meeting.get_meeting_type_display }}</span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>Status:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        <span class="badge 
+                            {% if meeting.status == 'completed' %}bg-success
+                            {% elif meeting.status == 'in_progress' %}bg-warning
+                            {% elif meeting.status == 'cancelled' %}bg-danger
+                            {% elif meeting.status == 'postponed' %}bg-warning
+                            {% elif meeting.status == 'no_show' %}bg-danger
+                            {% else %}bg-secondary{% endif %}">
+                            {{ meeting.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>Start Time:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ meeting.start_datetime|date:"F d, Y g:i A" }}
+                        {% if meeting.is_overdue %}
+                            <span class="badge bg-danger ms-2">Overdue</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>End Time:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ meeting.end_datetime|date:"F d, Y g:i A" }}
+                    </div>
+                </div>
+
+                {% if meeting.duration_minutes %}
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>Duration:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ meeting.duration_minutes }} minutes
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if meeting.location %}
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>Location:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        <i class="fas fa-map-marker-alt"></i> {{ meeting.location }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if meeting.meeting_url %}
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>Meeting URL:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        <a href="{{ meeting.meeting_url }}" target="_blank" class="text-decoration-none">
+                            <i class="fas fa-video"></i> Join Meeting
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if meeting.primary_contact %}
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>Primary Contact:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        <a href="{{ meeting.primary_contact.get_absolute_url }}" class="text-decoration-none">
+                            <i class="fas fa-user"></i> {{ meeting.primary_contact.first_name }} {{ meeting.primary_contact.last_name }}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if meeting.attendees_notes %}
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>Attendees:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ meeting.attendees_notes|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if meeting.agenda %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-list"></i> Agenda</h5>
+            </div>
+            <div class="card-body">
+                {{ meeting.agenda|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if meeting.meeting_notes %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-sticky-note"></i> Meeting Notes</h5>
+            </div>
+            <div class="card-body">
+                {{ meeting.meeting_notes|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if meeting.outcome %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-check-circle"></i> Outcome & Next Steps</h5>
+            </div>
+            <div class="card-body">
+                {{ meeting.outcome|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <!-- Related Information -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Related Information</h6>
+            </div>
+            <div class="card-body">
+                {% if meeting.related_account %}
+                <div class="mb-2">
+                    <strong>Account:</strong><br>
+                    <a href="{{ meeting.related_account.get_absolute_url }}" class="text-decoration-none">
+                        <i class="fas fa-building"></i> {{ meeting.related_account.name }}
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if meeting.related_contact %}
+                <div class="mb-2">
+                    <strong>Contact:</strong><br>
+                    <a href="{{ meeting.related_contact.get_absolute_url }}" class="text-decoration-none">
+                        <i class="fas fa-user"></i> {{ meeting.related_contact.first_name }} {{ meeting.related_contact.last_name }}
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if meeting.related_lead %}
+                <div class="mb-2">
+                    <strong>Lead:</strong><br>
+                    <a href="{{ meeting.related_lead.get_absolute_url }}" class="text-decoration-none">
+                        <i class="fas fa-bullseye"></i> {{ meeting.related_lead.first_name }} {{ meeting.related_lead.last_name }}
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if meeting.related_opportunity %}
+                <div class="mb-2">
+                    <strong>Opportunity:</strong><br>
+                    <a href="{{ meeting.related_opportunity.get_absolute_url }}" class="text-decoration-none">
+                        <i class="fas fa-handshake"></i> {{ meeting.related_opportunity.name }}
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if not meeting.related_account and not meeting.related_contact and not meeting.related_lead and not meeting.related_opportunity %}
+                <p class="text-muted">No related records.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Assignment Information -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Assignment</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Assigned To:</strong><br>
+                    <i class="fas fa-user"></i> {{ meeting.assigned_to.get_full_name|default:meeting.assigned_to.username }}
+                </div>
+                {% if meeting.created_by %}
+                <div class="mb-2">
+                    <strong>Created By:</strong><br>
+                    <i class="fas fa-user-plus"></i> {{ meeting.created_by.get_full_name|default:meeting.created_by.username }}
+                </div>
+                {% endif %}
+                <div class="mb-2">
+                    <strong>Created:</strong><br>
+                    <i class="fas fa-calendar"></i> {{ meeting.created_at|date:"F d, Y g:i A" }}
+                </div>
+                <div>
+                    <strong>Modified:</strong><br>
+                    <i class="fas fa-calendar-alt"></i> {{ meeting.updated_at|date:"F d, Y g:i A" }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

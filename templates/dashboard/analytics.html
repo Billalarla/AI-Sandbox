@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics - CRM System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-chart-area me-2"></i>Analytics</h1>
+    <div class="btn-group" role="group">
+        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary">Dashboard</a>
+        <a href="{% url 'dashboard:reports' %}" class="btn btn-outline-secondary">Reports</a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Analytics Dashboard</strong> - Advanced analytics and insights coming soon! 
+            This section will include detailed performance metrics, trend analysis, and predictive insights.
+        </div>
+    </div>
+</div>
+
+<!-- Placeholder Analytics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Sales Trends</h5>
+                <p class="text-muted">Monthly and quarterly sales analysis</p>
+                <button class="btn btn-outline-primary btn-sm" disabled>View Details</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-users fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Customer Insights</h5>
+                <p class="text-muted">Customer behavior and segmentation</p>
+                <button class="btn btn-outline-success btn-sm" disabled>View Details</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-bullseye fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Campaign Performance</h5>
+                <p class="text-muted">ROI and conversion tracking</p>
+                <button class="btn btn-outline-warning btn-sm" disabled>View Details</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-forecast fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Sales Forecasting</h5>
+                <p class="text-muted">Predictive sales analytics</p>
+                <button class="btn btn-outline-info btn-sm" disabled>View Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Coming Soon Features -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-rocket me-2"></i>Coming Soon</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Advanced Sales Forecasting
+                        <span class="badge bg-primary rounded-pill">Soon</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Customer Lifetime Value Analysis
+                        <span class="badge bg-primary rounded-pill">Soon</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Lead Scoring & Predictions
+                        <span class="badge bg-primary rounded-pill">Soon</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Territory Performance Analysis
+                        <span class="badge bg-primary rounded-pill">Soon</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Custom Dashboard Builder
+                        <span class="badge bg-primary rounded-pill">Soon</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Analytics Features</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Our advanced analytics will provide:</p>
+                <ul>
+                    <li><strong>Predictive Analytics</strong> - Forecast sales and identify trends</li>
+                    <li><strong>Customer Segmentation</strong> - Group customers by behavior and value</li>
+                    <li><strong>Performance Metrics</strong> - Track KPIs and team performance</li>
+                    <li><strong>ROI Analysis</strong> - Measure campaign and activity effectiveness</li>
+                    <li><strong>Custom Reports</strong> - Build reports tailored to your needs</li>
+                    <li><strong>Real-time Insights</strong> - Get instant notifications and alerts</li>
+                </ul>
+                <p class="text-muted mt-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    These features are being developed and will be available in future updates.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

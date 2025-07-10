@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ task.subject }} - Task Details{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'tasks:list' %}">Tasks</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ task.subject }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-task text-primary"></i> {{ task.subject }}</h1>
+    <div class="btn-group">
+        <a href="{% url 'tasks:edit' task.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        {% if task.status != 'completed' %}
+        <form method="post" action="{% url 'tasks:complete' task.pk %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success" onclick="return confirm('Mark this task as completed?')">
+                <i class="fas fa-check"></i> Complete
+            </button>
+        </form>
+        {% endif %}
+        <a href="{% url 'tasks:delete' task.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Task Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Task Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Subject:</strong> {{ task.subject }}</p>
+                        <p><strong>Type:</strong> {{ task.get_task_type_display }}</p>
+                        <p><strong>Priority:</strong> 
+                            <span class="badge {% if task.priority == 'high' %}bg-danger{% elif task.priority == 'medium' %}bg-warning{% else %}bg-success{% endif %}">
+                                {{ task.get_priority_display }}
+                            </span>
+                        </p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge {% if task.status == 'completed' %}bg-success{% elif task.status == 'in_progress' %}bg-info{% elif task.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ task.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Start Date:</strong> {{ task.start_date|date:"M d, Y g:i A"|default:"-" }}</p>
+                        <p><strong>Due Date:</strong> 
+                            {% if task.due_date %}
+                                <span class="{% if task.due_date < today %}text-danger{% elif task.due_date == today %}text-warning{% else %}text-success{% endif %}">
+                                    {{ task.due_date|date:"M d, Y g:i A" }}
+                                </span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p><strong>Completed Date:</strong> {{ task.completed_date|date:"M d, Y g:i A"|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Information -->
+        {% if task.related_account or task.related_contact or task.related_opportunity %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-link"></i> Related Information</h5>
+            </div>
+            <div class="card-body">
+                {% if task.related_account %}
+                <p><strong>Related Account:</strong> 
+                    <a href="{% url 'accounts:detail' task.related_account.pk %}">{{ task.related_account.name }}</a>
+                </p>
+                <p><strong>Account Type:</strong> {{ task.related_account.get_account_type_display|default:"-" }}</p>
+                {% endif %}
+                
+                {% if task.related_contact %}
+                <p><strong>Related Contact:</strong> 
+                    <a href="{% url 'contacts:detail' task.related_contact.pk %}">{{ task.related_contact.full_name }}</a>
+                </p>
+                <p><strong>Contact Email:</strong> 
+                    {% if task.related_contact.email %}
+                        <a href="mailto:{{ task.related_contact.email }}">{{ task.related_contact.email }}</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </p>
+                {% endif %}
+                
+                {% if task.related_opportunity %}
+                <p><strong>Related Opportunity:</strong> 
+                    <a href="{% url 'opportunities:detail' task.related_opportunity.pk %}">{{ task.related_opportunity.name }}</a>
+                </p>
+                <p><strong>Opportunity Amount:</strong> 
+                    {% if task.related_opportunity.amount %}
+                        ${{ task.related_opportunity.amount|floatformat:2 }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </p>
+                <p><strong>Opportunity Stage:</strong> {{ task.related_opportunity.get_stage_display }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Description -->
+        {% if task.description %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-sticky-note"></i> Description</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ task.description|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Comments -->
+        {% if task.comments %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-comments"></i> Comments</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ task.comments|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Task Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-clipboard-check"></i> Task Status</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Priority:</strong> 
+                    <span class="badge {% if task.priority == 'high' %}bg-danger{% elif task.priority == 'medium' %}bg-warning{% else %}bg-success{% endif %}">
+                        {{ task.get_priority_display }}
+                    </span>
+                </p>
+                <p><strong>Status:</strong> 
+                    <span class="badge {% if task.status == 'completed' %}bg-success{% elif task.status == 'in_progress' %}bg-info{% elif task.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                        {{ task.get_status_display }}
+                    </span>
+                </p>
+                <p><strong>Assigned To:</strong> {{ task.assigned_to.get_full_name|default:"-" }}</p>
+                <p><strong>Created By:</strong> {{ task.created_by.get_full_name|default:"-" }}</p>
+                <p><strong>Created:</strong> {{ task.created_at|date:"M d, Y g:i A" }}</p>
+                <p><strong>Updated:</strong> {{ task.updated_at|date:"M d, Y g:i A" }}</p>
+            </div>
+        </div>
+
+        <!-- Due Date Alert -->
+        {% if task.due_date and task.status != 'completed' %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-clock"></i> Due Date</h5>
+            </div>
+            <div class="card-body">
+                {% if task.due_date < today %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Overdue!</strong> This task was due {{ task.due_date|timesince }} ago.
+                    </div>
+                {% elif task.due_date == today %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>Due Today!</strong> This task is due today.
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Upcoming:</strong> Due in {{ task.due_date|timeuntil }}.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if task.status != 'completed' %}
+                    <form method="post" action="{% url 'tasks:complete' task.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success w-100" onclick="return confirm('Mark this task as completed?')">
+                            <i class="fas fa-check"></i> Mark as Complete
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if task.related_contact and task.related_contact.email %}
+                    <a href="mailto:{{ task.related_contact.email }}" class="btn btn-outline-primary">
+                        <i class="fas fa-envelope"></i> Email Contact
+                    </a>
+                    {% endif %}
+                    
+                    {% if task.related_account %}
+                    <a href="{% url 'accounts:detail' task.related_account.pk %}" class="btn btn-outline-info">
+                        <i class="fas fa-building"></i> View Account
+                    </a>
+                    {% endif %}
+                    
+                    {% if task.related_opportunity %}
+                    <a href="{% url 'opportunities:detail' task.related_opportunity.pk %}" class="btn btn-outline-warning">
+                        <i class="fas fa-handshake"></i> View Opportunity
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'tasks:create' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-plus"></i> Create New Task
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

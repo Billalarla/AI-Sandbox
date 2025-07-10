@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ contact.full_name }} - Contact Details{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'contacts:list' %}">Contacts</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ contact.full_name }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-user text-primary"></i> {{ contact.full_name }}</h1>
+    <div class="btn-group">
+        <a href="{% url 'contacts:edit' contact.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'contacts:delete' contact.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Personal Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-user"></i> Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Salutation:</strong> {{ contact.get_salutation_display|default:"-" }}</p>
+                        <p><strong>First Name:</strong> {{ contact.first_name }}</p>
+                        <p><strong>Last Name:</strong> {{ contact.last_name }}</p>
+                        <p><strong>Title:</strong> {{ contact.title|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Department:</strong> {{ contact.department|default:"-" }}</p>
+                        <p><strong>Reports To:</strong> 
+                            {% if contact.reports_to %}
+                                <a href="{% url 'contacts:detail' contact.reports_to.pk %}">{{ contact.reports_to.full_name }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p><strong>Lead Source:</strong> {{ contact.get_lead_source_display|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Information -->
+        {% if contact.account %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-building"></i> Account Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Account:</strong> <a href="{% url 'accounts:detail' contact.account.pk %}">{{ contact.account.name }}</a></p>
+                <p><strong>Account Type:</strong> {{ contact.account.get_account_type_display|default:"-" }}</p>
+                <p><strong>Industry:</strong> {{ contact.account.industry|default:"-" }}</p>
+                <p><strong>Website:</strong> 
+                    {% if contact.account.website %}
+                        <a href="{{ contact.account.website }}" target="_blank">{{ contact.account.website }}</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Contact Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-phone"></i> Contact Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Email:</strong> 
+                            {% if contact.email %}
+                                <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p><strong>Phone:</strong> {{ contact.phone|default:"-" }}</p>
+                        <p><strong>Mobile:</strong> {{ contact.mobile|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Do Not Call:</strong> 
+                            <span class="badge {% if contact.do_not_call %}bg-danger{% else %}bg-success{% endif %}">
+                                {% if contact.do_not_call %}Yes{% else %}No{% endif %}
+                            </span>
+                        </p>
+                        <p><strong>Email Opt Out:</strong> 
+                            <span class="badge {% if contact.email_opt_out %}bg-danger{% else %}bg-success{% endif %}">
+                                {% if contact.email_opt_out %}Yes{% else %}No{% endif %}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mailing Address -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-map-marker-alt"></i> Mailing Address</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Street:</strong> {{ contact.mailing_street|default:"-" }}</p>
+                        <p><strong>City:</strong> {{ contact.mailing_city|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>State:</strong> {{ contact.mailing_state|default:"-" }}</p>
+                        <p><strong>Postal Code:</strong> {{ contact.mailing_postal_code|default:"-" }}</p>
+                        <p><strong>Country:</strong> {{ contact.mailing_country|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        {% if contact.description %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-sticky-note"></i> Description</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ contact.description|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Contact Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Contact Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Assigned To:</strong> {{ contact.assigned_to.get_full_name|default:"-" }}</p>
+                <p><strong>Created By:</strong> {{ contact.created_by.get_full_name|default:"-" }}</p>
+                <p><strong>Created:</strong> {{ contact.created_at|date:"M d, Y g:i A" }}</p>
+                <p><strong>Updated:</strong> {{ contact.updated_at|date:"M d, Y g:i A" }}</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if contact.email %}
+                    <a href="mailto:{{ contact.email }}" class="btn btn-outline-primary">
+                        <i class="fas fa-envelope"></i> Send Email
+                    </a>
+                    {% endif %}
+                    {% if contact.phone %}
+                    <a href="tel:{{ contact.phone }}" class="btn btn-outline-success">
+                        <i class="fas fa-phone"></i> Call
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'tasks:create' %}?contact={{ contact.pk }}" class="btn btn-outline-warning">
+                        <i class="fas fa-tasks"></i> Create Task
+                    </a>
+                    <a href="{% url 'opportunities:create' %}?contact={{ contact.pk }}" class="btn btn-outline-info">
+                        <i class="fas fa-handshake"></i> Create Opportunity
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ campaign.name }} - Campaign Details{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'campaigns:list' %}">Campaigns</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ campaign.name }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-bullhorn text-primary"></i> {{ campaign.name }}</h1>
+    <div class="btn-group">
+        <a href="{% url 'campaigns:edit' campaign.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'campaigns:delete' campaign.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Campaign Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-bullhorn"></i> Campaign Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Name:</strong> {{ campaign.name }}</p>
+                        <p><strong>Type:</strong> {{ campaign.get_campaign_type_display|default:"-" }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge {% if campaign.status == 'active' %}bg-success{% elif campaign.status == 'planning' %}bg-info{% elif campaign.status == 'completed' %}bg-primary{% elif campaign.status == 'paused' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ campaign.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Start Date:</strong> {{ campaign.start_date|date:"M d, Y"|default:"-" }}</p>
+                        <p><strong>End Date:</strong> {{ campaign.end_date|date:"M d, Y"|default:"-" }}</p>
+                        <p><strong>Assigned To:</strong> {{ campaign.assigned_to.get_full_name|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-dollar-sign"></i> Financial Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Budget:</strong> 
+                            {% if campaign.budget %}
+                                ${{ campaign.budget|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p><strong>Expected Cost:</strong> 
+                            {% if campaign.expected_cost %}
+                                ${{ campaign.expected_cost|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Actual Cost:</strong> 
+                            {% if campaign.actual_cost %}
+                                ${{ campaign.actual_cost|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p><strong>Expected Revenue:</strong> 
+                            {% if campaign.expected_revenue %}
+                                ${{ campaign.expected_revenue|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Budget Progress -->
+                {% if campaign.budget and campaign.actual_cost %}
+                <div class="mt-3">
+                    <label class="form-label"><strong>Budget Usage</strong></label>
+                    {% widthratio campaign.actual_cost campaign.budget 100 as budget_percent %}
+                    <div class="progress">
+                        <div class="progress-bar {% if budget_percent > 90 %}bg-danger{% elif budget_percent > 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ budget_percent|default:0 }}%" 
+                             aria-valuenow="{{ budget_percent|default:0 }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ budget_percent|default:0 }}%
+                        </div>
+                    </div>
+                    <small class="text-muted">Used ${{ campaign.actual_cost|floatformat:2 }} of ${{ campaign.budget|floatformat:2 }} budget</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Campaign Metrics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-bar"></i> Campaign Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Target Size:</strong> {{ campaign.target_size|default:"-" }}</p>
+                        <p><strong>Num Sent:</strong> {{ campaign.num_sent|default:"-" }}</p>
+                        <p><strong>Expected Response:</strong> {{ campaign.expected_response|default:"-" }}%</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Actual Cost:</strong> 
+                            {% if campaign.actual_cost %}
+                                ${{ campaign.actual_cost|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Response Rate Progress -->
+                {% if campaign.expected_response %}
+                <div class="mt-3">
+                    <label class="form-label"><strong>Expected Response Rate</strong></label>
+                    <div class="progress">
+                        <div class="progress-bar bg-info" 
+                             role="progressbar" 
+                             style="width: {{ campaign.expected_response }}%" 
+                             aria-valuenow="{{ campaign.expected_response }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ campaign.expected_response }}%
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Description -->
+        {% if campaign.description %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-sticky-note"></i> Description</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ campaign.description|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Objective -->
+        {% if campaign.objective %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-target"></i> Objective</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ campaign.objective|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Campaign Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Campaign Status</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Status:</strong> 
+                    <span class="badge {% if campaign.status == 'active' %}bg-success{% elif campaign.status == 'planning' %}bg-info{% elif campaign.status == 'completed' %}bg-primary{% elif campaign.status == 'paused' %}bg-warning{% else %}bg-secondary{% endif %}">
+                        {{ campaign.get_status_display }}
+                    </span>
+                </p>
+                <p><strong>Type:</strong> {{ campaign.get_campaign_type_display|default:"-" }}</p>
+                <p><strong>Assigned To:</strong> {{ campaign.assigned_to.get_full_name|default:"-" }}</p>
+                <p><strong>Created By:</strong> {{ campaign.created_by.get_full_name|default:"-" }}</p>
+                <p><strong>Created:</strong> {{ campaign.created_at|date:"M d, Y g:i A" }}</p>
+                <p><strong>Updated:</strong> {{ campaign.updated_at|date:"M d, Y g:i A" }}</p>
+            </div>
+        </div>
+
+        <!-- Campaign Timeline -->
+        {% if campaign.start_date or campaign.end_date %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-calendar"></i> Timeline</h5>
+            </div>
+            <div class="card-body">
+                {% if campaign.start_date %}
+                <p><strong>Start Date:</strong> 
+                    <span class="{% if campaign.start_date > today %}text-info{% else %}text-success{% endif %}">
+                        {{ campaign.start_date|date:"M d, Y" }}
+                    </span>
+                </p>
+                {% endif %}
+                
+                {% if campaign.end_date %}
+                <p><strong>End Date:</strong> 
+                    <span class="{% if campaign.end_date < today %}text-danger{% elif campaign.end_date == today %}text-warning{% else %}text-success{% endif %}">
+                        {{ campaign.end_date|date:"M d, Y" }}
+                    </span>
+                </p>
+                {% endif %}
+                
+                {% if campaign.start_date and campaign.end_date %}
+                <div class="mt-3">
+                    <small class="text-muted">Duration: {{ campaign.start_date|timesince:campaign.end_date }}</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'leads:create' %}?campaign={{ campaign.pk }}" class="btn btn-outline-primary">
+                        <i class="fas fa-user-plus"></i> Create Lead
+                    </a>
+                    <a href="{% url 'opportunities:create' %}?campaign={{ campaign.pk }}" class="btn btn-outline-info">
+                        <i class="fas fa-handshake"></i> Create Opportunity
+                    </a>
+                    <a href="{% url 'tasks:create' %}?campaign={{ campaign.pk }}" class="btn btn-outline-warning">
+                        <i class="fas fa-tasks"></i> Create Task
+                    </a>
+                    {% if campaign.status == 'planning' %}
+                    <form method="post" action="{% url 'campaigns:activate' campaign.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success w-100" onclick="return confirm('Activate this campaign?')">
+                            <i class="fas fa-play"></i> Activate Campaign
+                        </button>
+                    </form>
+                    {% elif campaign.status == 'active' %}
+                    <form method="post" action="{% url 'campaigns:pause' campaign.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning w-100" onclick="return confirm('Pause this campaign?')">
+                            <i class="fas fa-pause"></i> Pause Campaign
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'campaigns:complete' campaign.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary w-100" onclick="return confirm('Mark this campaign as completed?')">
+                            <i class="fas fa-check"></i> Complete Campaign
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

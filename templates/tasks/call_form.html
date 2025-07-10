@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{% if call %}Edit Call{% else %}New Call{% endif %} - WindCRM{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'tasks:call_list' %}">Calls</a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if call %}Edit Call{% else %}New Call{% endif %}
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-phone text-primary"></i>
+                    {% if call %}Edit Call{% else %}Schedule New Call{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.subject.id_for_label }}" class="form-label">Subject *</label>
+                                {{ form.subject|add_class:"form-control" }}
+                                {% if form.subject.errors %}
+                                    <div class="text-danger">{{ form.subject.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number *</label>
+                                {{ form.phone_number|add_class:"form-control" }}
+                                {% if form.phone_number.errors %}
+                                    <div class="text-danger">{{ form.phone_number.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.call_type.id_for_label }}" class="form-label">Call Type</label>
+                                {{ form.call_type|add_class:"form-select" }}
+                                {% if form.call_type.errors %}
+                                    <div class="text-danger">{{ form.call_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                                {{ form.status|add_class:"form-select" }}
+                                {% if form.status.errors %}
+                                    <div class="text-danger">{{ form.status.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            {% if form.call_result %}
+                            <div class="mb-3">
+                                <label for="{{ form.call_result.id_for_label }}" class="form-label">Call Result</label>
+                                {{ form.call_result|add_class:"form-select" }}
+                                {% if form.call_result.errors %}
+                                    <div class="text-danger">{{ form.call_result.errors }}</div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.scheduled_datetime.id_for_label }}" class="form-label">Scheduled Date & Time *</label>
+                                {{ form.scheduled_datetime|add_class:"form-control" }}
+                                {% if form.scheduled_datetime.errors %}
+                                    <div class="text-danger">{{ form.scheduled_datetime.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.assigned_to.id_for_label }}" class="form-label">Assigned To *</label>
+                                {{ form.assigned_to|add_class:"form-select" }}
+                                {% if form.assigned_to.errors %}
+                                    <div class="text-danger">{{ form.assigned_to.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if form.actual_start_time %}
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.actual_start_time.id_for_label }}" class="form-label">Actual Start Time</label>
+                                {{ form.actual_start_time|add_class:"form-control" }}
+                                {% if form.actual_start_time.errors %}
+                                    <div class="text-danger">{{ form.actual_start_time.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.actual_end_time.id_for_label }}" class="form-label">Actual End Time</label>
+                                {{ form.actual_end_time|add_class:"form-control" }}
+                                {% if form.actual_end_time.errors %}
+                                    <div class="text-danger">{{ form.actual_end_time.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.duration_minutes.id_for_label }}" class="form-label">Duration (minutes)</label>
+                                {{ form.duration_minutes|add_class:"form-control" }}
+                                {% if form.duration_minutes.errors %}
+                                    <div class="text-danger">{{ form.duration_minutes.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                        {{ form.description|add_class:"form-control" }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    {% if form.call_notes %}
+                    <div class="mb-3">
+                        <label for="{{ form.call_notes.id_for_label }}" class="form-label">Call Notes</label>
+                        {{ form.call_notes|add_class:"form-control" }}
+                        {% if form.call_notes.errors %}
+                            <div class="text-danger">{{ form.call_notes.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <hr>
+                    <h6>Related Records</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.related_account.id_for_label }}" class="form-label">Related Account</label>
+                                {{ form.related_account|add_class:"form-select" }}
+                                {% if form.related_account.errors %}
+                                    <div class="text-danger">{{ form.related_account.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.related_contact.id_for_label }}" class="form-label">Related Contact</label>
+                                {{ form.related_contact|add_class:"form-select" }}
+                                {% if form.related_contact.errors %}
+                                    <div class="text-danger">{{ form.related_contact.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.related_lead.id_for_label }}" class="form-label">Related Lead</label>
+                                {{ form.related_lead|add_class:"form-select" }}
+                                {% if form.related_lead.errors %}
+                                    <div class="text-danger">{{ form.related_lead.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.related_opportunity.id_for_label }}" class="form-label">Related Opportunity</label>
+                                {{ form.related_opportunity|add_class:"form-select" }}
+                                {% if form.related_opportunity.errors %}
+                                    <div class="text-danger">{{ form.related_opportunity.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'tasks:call_list' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Call
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Tips</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-info-circle text-info"></i> <strong>Subject:</strong> Use a clear, descriptive subject line</li>
+                    <li><i class="fas fa-phone text-primary"></i> <strong>Phone:</strong> Include country code for international calls</li>
+                    <li><i class="fas fa-clock text-warning"></i> <strong>Schedule:</strong> Consider the contact's time zone</li>
+                    <li><i class="fas fa-link text-success"></i> <strong>Related Records:</strong> Link to relevant accounts, contacts, or opportunities</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

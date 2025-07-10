@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lead.full_name }} - Lead Details{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'leads:list' %}">Leads</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ lead.full_name }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-user text-primary"></i> {{ lead.full_name }}</h1>
+    <div class="btn-group">
+        <a href="{% url 'leads:edit' lead.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        {% if lead.status != 'converted' %}
+        <form method="post" action="{% url 'leads:convert' lead.pk %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to convert this lead?')">
+                <i class="fas fa-exchange-alt"></i> Convert
+            </button>
+        </form>
+        {% endif %}
+        <a href="{% url 'leads:delete' lead.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Personal Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-user"></i> Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Salutation:</strong> {{ lead.get_salutation_display|default:"-" }}</p>
+                        <p><strong>First Name:</strong> {{ lead.first_name }}</p>
+                        <p><strong>Last Name:</strong> {{ lead.last_name }}</p>
+                        <p><strong>Title:</strong> {{ lead.title|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Company:</strong> {{ lead.company }}</p>
+                        <p><strong>Industry:</strong> {{ lead.industry|default:"-" }}</p>
+                        <p><strong>Annual Revenue:</strong> 
+                            {% if lead.annual_revenue %}
+                                ${{ lead.annual_revenue|floatformat:0 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p><strong>Employees:</strong> {{ lead.employees|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-phone"></i> Contact Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Email:</strong> 
+                            {% if lead.email %}
+                                <a href="mailto:{{ lead.email }}">{{ lead.email }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p><strong>Phone:</strong> {{ lead.phone|default:"-" }}</p>
+                        <p><strong>Mobile:</strong> {{ lead.mobile|default:"-" }}</p>
+                        <p><strong>Website:</strong> 
+                            {% if lead.website %}
+                                <a href="{{ lead.website }}" target="_blank">{{ lead.website }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Do Not Call:</strong> 
+                            <span class="badge {% if lead.do_not_call %}bg-danger{% else %}bg-success{% endif %}">
+                                {% if lead.do_not_call %}Yes{% else %}No{% endif %}
+                            </span>
+                        </p>
+                        <p><strong>Email Opt Out:</strong> 
+                            <span class="badge {% if lead.email_opt_out %}bg-danger{% else %}bg-success{% endif %}">
+                                {% if lead.email_opt_out %}Yes{% else %}No{% endif %}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-map-marker-alt"></i> Address</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Street:</strong> {{ lead.street|default:"-" }}</p>
+                        <p><strong>City:</strong> {{ lead.city|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>State:</strong> {{ lead.state|default:"-" }}</p>
+                        <p><strong>Postal Code:</strong> {{ lead.postal_code|default:"-" }}</p>
+                        <p><strong>Country:</strong> {{ lead.country|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        {% if lead.description %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-sticky-note"></i> Description</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ lead.description|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Lead Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Lead Status</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Status:</strong> 
+                    <span class="badge {% if lead.status == 'new' %}bg-info{% elif lead.status == 'converted' %}bg-success{% elif lead.status == 'dead' %}bg-danger{% else %}bg-warning{% endif %}">
+                        {{ lead.get_status_display }}
+                    </span>
+                </p>
+                <p><strong>Source:</strong> {{ lead.get_lead_source_display|default:"-" }}</p>
+                <p><strong>Assigned To:</strong> {{ lead.assigned_to.get_full_name|default:"-" }}</p>
+                <p><strong>Created By:</strong> {{ lead.created_by.get_full_name|default:"-" }}</p>
+                <p><strong>Created:</strong> {{ lead.created_at|date:"M d, Y g:i A" }}</p>
+                <p><strong>Updated:</strong> {{ lead.updated_at|date:"M d, Y g:i A" }}</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if lead.email %}
+                    <a href="mailto:{{ lead.email }}" class="btn btn-outline-primary">
+                        <i class="fas fa-envelope"></i> Send Email
+                    </a>
+                    {% endif %}
+                    {% if lead.phone %}
+                    <a href="tel:{{ lead.phone }}" class="btn btn-outline-success">
+                        <i class="fas fa-phone"></i> Call
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'tasks:create' %}?lead={{ lead.pk }}" class="btn btn-outline-warning">
+                        <i class="fas fa-tasks"></i> Create Task
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

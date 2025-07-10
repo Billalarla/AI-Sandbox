@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports - CRM System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-chart-bar me-2"></i>Reports</h1>
+    <div class="btn-group" role="group">
+        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary">Dashboard</a>
+        <a href="{% url 'dashboard:analytics' %}" class="btn btn-outline-secondary">Analytics</a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sales by Stage -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Sales by Stage</h5>
+            </div>
+            <div class="card-body">
+                {% if sales_by_stage %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Stage</th>
+                                    <th>Count</th>
+                                    <th>Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stage in sales_by_stage %}
+                                <tr>
+                                    <td>{{ stage.sales_stage|title }}</td>
+                                    <td>{{ stage.count }}</td>
+                                    <td>${{ stage.total_amount|default:0|floatformat:0 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No sales data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Leads by Source -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>Leads by Source</h5>
+            </div>
+            <div class="card-body">
+                {% if leads_by_source %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Lead Source</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for source in leads_by_source %}
+                                <tr>
+                                    <td>{{ source.lead_source|title }}</td>
+                                    <td>{{ source.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No lead data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Performing Accounts -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Top Performing Accounts</h5>
+            </div>
+            <div class="card-body">
+                {% if top_accounts %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Account Name</th>
+                                    <th>Industry</th>
+                                    <th>Opportunities</th>
+                                    <th>Total Revenue</th>
+                                    <th>Assigned To</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for account in top_accounts %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'accounts:detail' account.pk %}">{{ account.name }}</a>
+                                    </td>
+                                    <td>{{ account.get_industry_display|default:"-" }}</td>
+                                    <td>{{ account.opportunity_count|default:0 }}</td>
+                                    <td>${{ account.total_revenue|default:0|floatformat:0 }}</td>
+                                    <td>{{ account.assigned_to.get_full_name|default:account.assigned_to.username|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No account data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-download me-2"></i>Export Reports</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Generate detailed reports for further analysis.</p>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary" disabled>
+                        <i class="fas fa-file-csv me-1"></i>Export CSV
+                    </button>
+                    <button class="btn btn-outline-primary" disabled>
+                        <i class="fas fa-file-pdf me-1"></i>Export PDF
+                    </button>
+                    <button class="btn btn-outline-primary" disabled>
+                        <i class="fas fa-file-excel me-1"></i>Export Excel
+                    </button>
+                </div>
+                <small class="text-muted d-block mt-2">Export functionality coming soon!</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

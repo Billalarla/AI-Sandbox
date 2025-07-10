@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ account.name }} - Account Details{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-building me-2"></i>{{ account.name }}</h1>
+    <div class="btn-group" role="group">
+        <a href="{% url 'accounts:edit' account.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i>Edit
+        </a>
+        <a href="{% url 'accounts:list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Account Information -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Account Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Account Type:</strong></label>
+                            <p class="form-control-plaintext">
+                                <span class="badge bg-secondary">{{ account.get_account_type_display }}</span>
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Industry:</strong></label>
+                            <p class="form-control-plaintext">{{ account.get_industry_display|default:"Not specified" }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Website:</strong></label>
+                            <p class="form-control-plaintext">
+                                {% if account.website %}
+                                    <a href="{{ account.website }}" target="_blank">{{ account.website }}</a>
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Phone:</strong></label>
+                            <p class="form-control-plaintext">{{ account.phone|default:"Not specified" }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Email:</strong></label>
+                            <p class="form-control-plaintext">
+                                {% if account.email %}
+                                    <a href="mailto:{{ account.email }}">{{ account.email }}</a>
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Assigned To:</strong></label>
+                            <p class="form-control-plaintext">{{ account.assigned_to.get_full_name|default:account.assigned_to.username|default:"Unassigned" }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if account.description %}
+                <div class="mb-3">
+                    <label class="form-label"><strong>Description:</strong></label>
+                    <p class="form-control-plaintext">{{ account.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Financial Information -->
+        {% if account.annual_revenue or account.employees %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Financial Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Annual Revenue:</strong></label>
+                            <p class="form-control-plaintext">
+                                {% if account.annual_revenue %}
+                                    ${{ account.annual_revenue|floatformat:0 }}
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Employees:</strong></label>
+                            <p class="form-control-plaintext">{{ account.employees|default:"Not specified" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Address Information -->
+        {% if account.billing_street or account.shipping_street %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Address Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if account.billing_street %}
+                    <div class="col-md-6">
+                        <h6>Billing Address</h6>
+                        <address>
+                            {% if account.billing_street %}{{ account.billing_street }}<br>{% endif %}
+                            {% if account.billing_city %}{{ account.billing_city }}, {% endif %}
+                            {% if account.billing_state %}{{ account.billing_state }} {% endif %}
+                            {% if account.billing_postal_code %}{{ account.billing_postal_code }}<br>{% endif %}
+                            {% if account.billing_country %}{{ account.billing_country }}{% endif %}
+                        </address>
+                    </div>
+                    {% endif %}
+                    
+                    {% if account.shipping_street %}
+                    <div class="col-md-6">
+                        <h6>Shipping Address</h6>
+                        <address>
+                            {% if account.shipping_street %}{{ account.shipping_street }}<br>{% endif %}
+                            {% if account.shipping_city %}{{ account.shipping_city }}, {% endif %}
+                            {% if account.shipping_state %}{{ account.shipping_state }} {% endif %}
+                            {% if account.shipping_postal_code %}{{ account.shipping_postal_code }}<br>{% endif %}
+                            {% if account.shipping_country %}{{ account.shipping_country }}{% endif %}
+                        </address>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Stats -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">{{ account.contacts.count }}</h4>
+                        <small class="text-muted">Contacts</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ account.opportunities.count }}</h4>
+                        <small class="text-muted">Opportunities</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Contacts -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>Contacts</h5>
+                <a href="{% url 'contacts:create' %}?account={{ account.pk }}" class="btn btn-sm btn-outline-primary">Add</a>
+            </div>
+            <div class="card-body">
+                {% if account.contacts.all %}
+                    {% for contact in account.contacts.all|slice:":5" %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ contact.full_name }}</strong><br>
+                            <small class="text-muted">{{ contact.title|default:"No title" }}</small>
+                        </div>
+                        <a href="{% url 'contacts:detail' contact.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                    </div>
+                    {% endfor %}
+                    {% if account.contacts.count > 5 %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'contacts:list' %}?account={{ account.pk }}" class="btn btn-sm btn-outline-secondary">View All ({{ account.contacts.count }})</a>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted mb-0">No contacts yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Meta Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info me-2"></i>Record Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Created:</strong><br>
+                    {{ account.created_at|date:"F d, Y H:i" }}
+                </div>
+                <div class="mb-2">
+                    <strong>Created By:</strong><br>
+                    {{ account.created_by.get_full_name|default:account.created_by.username|default:"Unknown" }}
+                </div>
+                <div class="mb-2">
+                    <strong>Last Modified:</strong><br>
+                    {{ account.updated_at|date:"F d, Y H:i" }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-stream me-2"></i>Recent Activity</h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-plus"></i> Add Activity
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'tasks:create' %}?account={{ account.pk }}">
+                            <i class="fas fa-tasks me-1"></i> Create Task
+                        </a></li>
+                        <li><a class="dropdown-item" href="{% url 'tasks:call_create' %}?account={{ account.pk }}">
+                            <i class="fas fa-phone me-1"></i> Schedule Call
+                        </a></li>
+                        <li><a class="dropdown-item" href="{% url 'tasks:meeting_create' %}?account={{ account.pk }}">
+                            <i class="fas fa-calendar-alt me-1"></i> Schedule Meeting
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if activities %}
+                    <div class="timeline">
+                        {% for activity in activities %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker">
+                                {% if activity.activity_type == 'Task' %}
+                                    <i class="fas fa-tasks text-warning"></i>
+                                {% elif activity.activity_type == 'Call' %}
+                                    <i class="fas fa-phone text-primary"></i>
+                                {% elif activity.activity_type == 'Meeting' %}
+                                    <i class="fas fa-calendar-alt text-success"></i>
+                                {% endif %}
+                            </div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <a href="{{ activity.get_absolute_url }}" class="text-decoration-none">
+                                                {{ activity.subject }}
+                                            </a>
+                                        </h6>
+                                        <p class="text-muted mb-1">
+                                            {% if activity.activity_type == 'Task' %}
+                                                <strong>Task:</strong> {{ activity.get_task_type_display }} - {{ activity.get_status_display }}
+                                                <br><strong>Due:</strong> {{ activity.due_date|date:"M d, Y g:i A" }}
+                                            {% elif activity.activity_type == 'Call' %}
+                                                <strong>Call:</strong> {{ activity.get_call_type_display }} - {{ activity.get_status_display }}
+                                                <br><strong>Scheduled:</strong> {{ activity.scheduled_datetime|date:"M d, Y g:i A" }}
+                                            {% elif activity.activity_type == 'Meeting' %}
+                                                <strong>Meeting:</strong> {{ activity.get_meeting_type_display }} - {{ activity.get_status_display }}
+                                                <br><strong>Start:</strong> {{ activity.start_datetime|date:"M d, Y g:i A" }}
+                                            {% endif %}
+                                        </p>
+                                        <small class="text-muted">
+                                            Assigned to: {{ activity.assigned_to.get_full_name|default:activity.assigned_to.username }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">{{ activity.created_at|date:"M d, Y" }}</small>
+                                        {% if activity.activity_type == 'Task' and activity.is_overdue %}
+                                            <br><span class="badge bg-danger">Overdue</span>
+                                        {% elif activity.activity_type == 'Call' and activity.is_overdue %}
+                                            <br><span class="badge bg-danger">Overdue</span>
+                                        {% elif activity.activity_type == 'Meeting' and activity.is_overdue %}
+                                            <br><span class="badge bg-danger">Overdue</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">Showing latest {{ activities|length }} activities</small>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-stream fa-3x mb-3"></i>
+                        <p>No recent activity for this account.</p>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'tasks:create' %}?account={{ account.pk }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-tasks"></i> Create Task
+                            </a>
+                            <a href="{% url 'tasks:call_create' %}?account={{ account.pk }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-phone"></i> Schedule Call
+                            </a>
+                            <a href="{% url 'tasks:meeting_create' %}?account={{ account.pk }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-calendar-alt"></i> Schedule Meeting
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

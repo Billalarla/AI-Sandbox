@@ -1,0 +1,9 @@
+Django==5.2.4
+Pillow==10.0.0
+django-crispy-forms==2.0
+crispy-bootstrap4==2022.1
+django-filter==23.2
+django-extensions==3.2.3
+python-decouple==3.8
+celery==5.3.1
+redis==4.6.0

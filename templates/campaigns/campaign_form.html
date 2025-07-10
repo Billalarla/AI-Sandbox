@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}
+    {% if object %}Edit Campaign{% else %}Create Campaign{% endif %} - CRM System
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'campaigns:list' %}">Campaigns</a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if object %}Edit Campaign{% else %}Create Campaign{% endif %}
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-{% if object %}edit{% else %}plus{% endif %} text-primary"></i>
+        {% if object %}Edit Campaign: {{ object.name }}{% else %}Create New Campaign{% endif %}
+    </h1>
+</div>
+
+<form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Campaign Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-bullhorn"></i> Campaign Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">Campaign Name <span class="text-danger">*</span></label>
+                                {{ form.name|add_class:"form-control" }}
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.campaign_type.id_for_label }}" class="form-label">Campaign Type</label>
+                                {{ form.campaign_type|add_class:"form-select" }}
+                                {% if form.campaign_type.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.campaign_type.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                                {{ form.status|add_class:"form-select" }}
+                                {% if form.status.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.status.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.assigned_to.id_for_label }}" class="form-label">Assigned To</label>
+                                {{ form.assigned_to|add_class:"form-select" }}
+                                {% if form.assigned_to.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.assigned_to.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.start_date.id_for_label }}" class="form-label">Start Date</label>
+                                {{ form.start_date|add_class:"form-control" }}
+                                {% if form.start_date.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.start_date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.end_date.id_for_label }}" class="form-label">End Date</label>
+                                {{ form.end_date|add_class:"form-control" }}
+                                {% if form.end_date.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.end_date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-dollar-sign"></i> Financial Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.budget.id_for_label }}" class="form-label">Budget</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.budget|add_class:"form-control" }}
+                                </div>
+                                {% if form.budget.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.budget.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.expected_cost.id_for_label }}" class="form-label">Expected Cost</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.expected_cost|add_class:"form-control" }}
+                                </div>
+                                {% if form.expected_cost.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.expected_cost.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.actual_cost.id_for_label }}" class="form-label">Actual Cost</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.actual_cost|add_class:"form-control" }}
+                                </div>
+                                {% if form.actual_cost.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.actual_cost.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.expected_revenue.id_for_label }}" class="form-label">Expected Revenue</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.expected_revenue|add_class:"form-control" }}
+                                </div>
+                                {% if form.expected_revenue.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.expected_revenue.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campaign Metrics -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-bar"></i> Campaign Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.target_size.id_for_label }}" class="form-label">Target Size</label>
+                                {{ form.target_size|add_class:"form-control" }}
+                                {% if form.target_size.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.target_size.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Number of people/organizations targeted</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.num_sent.id_for_label }}" class="form-label">Number Sent</label>
+                                {{ form.num_sent|add_class:"form-control" }}
+                                {% if form.num_sent.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.num_sent.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Number of campaigns sent</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.expected_response.id_for_label }}" class="form-label">Expected Response (%)</label>
+                                <div class="input-group">
+                                    {{ form.expected_response|add_class:"form-control" }}
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                {% if form.expected_response.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.expected_response.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-sticky-note"></i> Description</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                        {{ form.description|add_class:"form-control" }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Objective -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-target"></i> Objective</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.objective.id_for_label }}" class="form-label">Objective</label>
+                        {{ form.objective|add_class:"form-control" }}
+                        {% if form.objective.errors %}
+                            <div class="invalid-feedback d-block">{{ form.objective.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">What are the goals and objectives of this campaign?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Campaign Status Guide -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Status Guide</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-info me-2">Planning</span>
+                        <small>Campaign is being planned</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-success me-2">Active</span>
+                        <small>Campaign is currently running</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-warning me-2">Paused</span>
+                        <small>Campaign is temporarily paused</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-primary me-2">Completed</span>
+                        <small>Campaign has finished</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-secondary me-2">Cancelled</span>
+                        <small>Campaign was cancelled</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campaign Types -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-list"></i> Campaign Types</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i>Email Marketing</li>
+                        <li><i class="fas fa-phone me-2"></i>Telemarketing</li>
+                        <li><i class="fas fa-mail-bulk me-2"></i>Direct Mail</li>
+                        <li><i class="fas fa-calendar-alt me-2"></i>Conference/Event</li>
+                        <li><i class="fas fa-globe me-2"></i>Web Campaign</li>
+                        <li><i class="fas fa-ad me-2"></i>Advertisement</li>
+                        <li><i class="fas fa-newspaper me-2"></i>Newsletter</li>
+                        <li><i class="fas fa-ellipsis-h me-2"></i>Other</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> 
+                            {% if object %}Update Campaign{% else %}Create Campaign{% endif %}
+                        </button>
+                        <a href="{% if object %}{% url 'campaigns:detail' object.pk %}{% else %}{% url 'campaigns:list' %}{% endif %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+// Bootstrap form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+
+{% endblock %}

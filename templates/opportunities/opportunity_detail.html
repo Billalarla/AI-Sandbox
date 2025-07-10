@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ opportunity.name }} - Opportunity Details{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'opportunities:list' %}">Opportunities</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ opportunity.name }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-handshake text-primary"></i> {{ opportunity.name }}</h1>
+    <div class="btn-group">
+        <a href="{% url 'opportunities:edit' opportunity.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'opportunities:delete' opportunity.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Opportunity Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-handshake"></i> Opportunity Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Name:</strong> {{ opportunity.name }}</p>
+                        <p><strong>Account:</strong> 
+                            {% if opportunity.account %}
+                                <a href="{% url 'accounts:detail' opportunity.account.pk %}">{{ opportunity.account.name }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p><strong>Type:</strong> {{ opportunity.get_opportunity_type_display|default:"-" }}</p>
+                        <p><strong>Lead Source:</strong> {{ opportunity.get_lead_source_display|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Amount:</strong> 
+                            {% if opportunity.amount %}
+                                ${{ opportunity.amount|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p><strong>Stage:</strong> 
+                            <span class="badge {% if opportunity.stage == 'prospecting' %}bg-info{% elif opportunity.stage == 'qualification' %}bg-warning{% elif opportunity.stage == 'proposal' %}bg-primary{% elif opportunity.stage == 'negotiation' %}bg-secondary{% elif opportunity.stage == 'closed_won' %}bg-success{% elif opportunity.stage == 'closed_lost' %}bg-danger{% else %}bg-light text-dark{% endif %}">
+                                {{ opportunity.get_stage_display }}
+                            </span>
+                        </p>
+                        <p><strong>Probability:</strong> {{ opportunity.probability }}%</p>
+                        <p><strong>Close Date:</strong> {{ opportunity.close_date|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Step -->
+        {% if opportunity.next_step %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-arrow-right"></i> Next Step</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ opportunity.next_step|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Description -->
+        {% if opportunity.description %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-sticky-note"></i> Description</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ opportunity.description|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Campaign Information -->
+        {% if opportunity.campaign %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-bullhorn"></i> Campaign Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Campaign:</strong> 
+                    <a href="{% url 'campaigns:detail' opportunity.campaign.pk %}">{{ opportunity.campaign.name }}</a>
+                </p>
+                <p><strong>Campaign Type:</strong> {{ opportunity.campaign.get_campaign_type_display|default:"-" }}</p>
+                <p><strong>Campaign Status:</strong> {{ opportunity.campaign.get_status_display|default:"-" }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Opportunity Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Opportunity Status</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Stage:</strong> 
+                    <span class="badge {% if opportunity.stage == 'prospecting' %}bg-info{% elif opportunity.stage == 'qualification' %}bg-warning{% elif opportunity.stage == 'proposal' %}bg-primary{% elif opportunity.stage == 'negotiation' %}bg-secondary{% elif opportunity.stage == 'closed_won' %}bg-success{% elif opportunity.stage == 'closed_lost' %}bg-danger{% else %}bg-light text-dark{% endif %}">
+                        {{ opportunity.get_stage_display }}
+                    </span>
+                </p>
+                <p><strong>Probability:</strong> 
+                    <div class="progress">
+                        <div class="progress-bar {% if opportunity.probability >= 80 %}bg-success{% elif opportunity.probability >= 60 %}bg-info{% elif opportunity.probability >= 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ opportunity.probability }}%" 
+                             aria-valuenow="{{ opportunity.probability }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ opportunity.probability }}%
+                        </div>
+                    </div>
+                </p>
+                <p><strong>Assigned To:</strong> {{ opportunity.assigned_to.get_full_name|default:"-" }}</p>
+                <p><strong>Created By:</strong> {{ opportunity.created_by.get_full_name|default:"-" }}</p>
+                <p><strong>Created:</strong> {{ opportunity.created_at|date:"M d, Y g:i A" }}</p>
+                <p><strong>Updated:</strong> {{ opportunity.updated_at|date:"M d, Y g:i A" }}</p>
+            </div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-dollar-sign"></i> Financial Summary</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Amount:</strong> 
+                    {% if opportunity.amount %}
+                        <span class="h5 text-success">${{ opportunity.amount|floatformat:2 }}</span>
+                    {% else %}
+                        <span class="text-muted">Not specified</span>
+                    {% endif %}
+                </p>
+                <p><strong>Expected Revenue:</strong> 
+                    {% if opportunity.amount %}
+                        <span class="text-info">${{ opportunity.amount|floatformat:2|mul:opportunity.probability|div:100|floatformat:2 }}</span>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </p>
+                <p><strong>Close Date:</strong> 
+                    <span class="{% if opportunity.close_date < today %}text-danger{% elif opportunity.close_date == today %}text-warning{% else %}text-success{% endif %}">
+                        {{ opportunity.close_date|date:"M d, Y" }}
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-plus"></i> Create Activity
+                        </button>
+                        <ul class="dropdown-menu w-100">
+                            <li><a class="dropdown-item" href="{% url 'tasks:create' %}?opportunity={{ opportunity.pk }}">
+                                <i class="fas fa-tasks me-2"></i> Create Task
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'tasks:call_create' %}?opportunity={{ opportunity.pk }}">
+                                <i class="fas fa-phone me-2"></i> Schedule Call
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'tasks:meeting_create' %}?opportunity={{ opportunity.pk }}">
+                                <i class="fas fa-calendar-alt me-2"></i> Schedule Meeting
+                            </a></li>
+                        </ul>
+                    </div>
+                    {% if opportunity.account %}
+                    <a href="{% url 'accounts:detail' opportunity.account.pk %}" class="btn btn-outline-info">
+                        <i class="fas fa-building"></i> View Account
+                    </a>
+                    {% endif %}
+                    {% if opportunity.stage not in 'closed_won,closed_lost' %}
+                    <form method="post" action="{% url 'opportunities:edit' opportunity.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="stage" value="closed_won">
+                        <button type="submit" class="btn btn-outline-success w-100" onclick="return confirm('Mark this opportunity as Won?')">
+                            <i class="fas fa-trophy"></i> Mark as Won
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'opportunities:edit' opportunity.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="stage" value="closed_lost">
+                        <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Mark this opportunity as Lost?')">
+                            <i class="fas fa-times"></i> Mark as Lost
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

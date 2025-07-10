@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - CRM System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h1>
+    <span class="text-muted">Welcome, {{ user.get_full_name|default:user.username }}!</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card card-stat">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title text-muted">Accounts</h5>
+                        <h2 class="mb-0">{{ total_accounts }}</h2>
+                    </div>
+                    <i class="fas fa-building fa-2x text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card card-stat success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title text-muted">Contacts</h5>
+                        <h2 class="mb-0">{{ total_contacts }}</h2>
+                    </div>
+                    <i class="fas fa-users fa-2x text-success"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card card-stat warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title text-muted">Leads</h5>
+                        <h2 class="mb-0">{{ total_leads }}</h2>
+                    </div>
+                    <i class="fas fa-user-plus fa-2x text-warning"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card card-stat info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title text-muted">Open Opportunities</h5>
+                        <h2 class="mb-0">{{ total_opportunities }}</h2>
+                    </div>
+                    <i class="fas fa-handshake fa-2x text-info"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sales Pipeline -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Sales Pipeline</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="pipelineChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lead Conversion -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-percentage me-2"></i>Lead Conversion</h5>
+            </div>
+            <div class="card-body text-center">
+                <canvas id="conversionChart" height="200"></canvas>
+                <h3 class="mt-3">{{ conversion_rate|floatformat:1 }}%</h3>
+                <p class="text-muted">Conversion Rate</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- My Tasks -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>My Tasks</h5>
+                <a href="{% url 'tasks:list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if my_tasks %}
+                    <div class="list-group list-group-flush">
+                        {% for task in my_tasks %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ task.subject }}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ task.due_date|date:"M d, Y" }}
+                                    {% if task.is_overdue %}
+                                        <span class="badge bg-danger ms-2">Overdue</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <span class="badge bg-primary">{{ task.get_priority_display }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No pending tasks.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activities -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Activities</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_leads %}
+                    <h6 class="text-muted">Recent Leads</h6>
+                    {% for lead in recent_leads %}
+                    <div class="activity-item recent">
+                        <strong>{{ lead.full_name }}</strong> from {{ lead.company }}
+                        <br><small class="text-muted">{{ lead.created_at|timesince }} ago</small>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {% if recent_opportunities %}
+                    <h6 class="text-muted mt-3">Recent Opportunities</h6>
+                    {% for opp in recent_opportunities %}
+                    <div class="activity-item">
+                        <strong>{{ opp.name }}</strong> - ${{ opp.amount|floatformat:0 }}
+                        <br><small class="text-muted">{{ opp.created_at|timesince }} ago</small>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Sales Chart -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Monthly Sales Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlySalesChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Sales Pipeline Chart
+const pipelineCtx = document.getElementById('pipelineChart').getContext('2d');
+const pipelineData = {{ pipeline_data|safe|default:"[]" }};
+
+// Only create chart if we have data
+if (pipelineData && pipelineData.length > 0) {
+    new Chart(pipelineCtx, {
+        type: 'bar',
+        data: {
+            labels: pipelineData.map(item => item.sales_stage.replace('_', ' ').toUpperCase()),
+            datasets: [{
+                label: 'Count',
+                data: pipelineData.map(item => item.count),
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+} else {
+    // Show message if no pipeline data
+    pipelineCtx.canvas.parentElement.innerHTML = '<p class="text-center text-muted">No pipeline data available</p>';
+}
+
+// Lead Conversion Chart
+const conversionCtx = document.getElementById('conversionChart').getContext('2d');
+const conversionRate = {{ conversion_rate|default:0 }};
+const nonConvertedRate = 100 - conversionRate;
+
+new Chart(conversionCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Converted', 'Not Converted'],
+        datasets: [{
+            data: [conversionRate, nonConvertedRate],
+            backgroundColor: ['#28a745', '#e9ecef'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// Monthly Sales Chart
+const monthlySalesCtx = document.getElementById('monthlySalesChart').getContext('2d');
+const monthlySalesData = {{ monthly_sales|safe }};
+
+new Chart(monthlySalesCtx, {
+    type: 'line',
+    data: {
+        labels: monthlySalesData.map(item => item.month),
+        datasets: [{
+            label: 'Sales ($)',
+            data: monthlySalesData.map(item => item.sales),
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderWidth: 2,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

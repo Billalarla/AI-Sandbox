@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{% if meeting %}Edit Meeting{% else %}New Meeting{% endif %} - WindCRM{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'tasks:meeting_list' %}">Meetings</a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if meeting %}Edit Meeting{% else %}New Meeting{% endif %}
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-alt text-primary"></i>
+                    {% if meeting %}Edit Meeting{% else %}Schedule New Meeting{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="{{ form.subject.id_for_label }}" class="form-label">Subject *</label>
+                                {{ form.subject|add_class:"form-control" }}
+                                {% if form.subject.errors %}
+                                    <div class="text-danger">{{ form.subject.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.meeting_type.id_for_label }}" class="form-label">Meeting Type</label>
+                                {{ form.meeting_type|add_class:"form-select" }}
+                                {% if form.meeting_type.errors %}
+                                    <div class="text-danger">{{ form.meeting_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.start_datetime.id_for_label }}" class="form-label">Start Date & Time *</label>
+                                {{ form.start_datetime|add_class:"form-control" }}
+                                {% if form.start_datetime.errors %}
+                                    <div class="text-danger">{{ form.start_datetime.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.end_datetime.id_for_label }}" class="form-label">End Date & Time *</label>
+                                {{ form.end_datetime|add_class:"form-control" }}
+                                {% if form.end_datetime.errors %}
+                                    <div class="text-danger">{{ form.end_datetime.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                                {{ form.status|add_class:"form-select" }}
+                                {% if form.status.errors %}
+                                    <div class="text-danger">{{ form.status.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.assigned_to.id_for_label }}" class="form-label">Assigned To *</label>
+                                {{ form.assigned_to|add_class:"form-select" }}
+                                {% if form.assigned_to.errors %}
+                                    <div class="text-danger">{{ form.assigned_to.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            {% if form.duration_minutes %}
+                            <div class="mb-3">
+                                <label for="{{ form.duration_minutes.id_for_label }}" class="form-label">Duration (minutes)</label>
+                                {{ form.duration_minutes|add_class:"form-control" }}
+                                {% if form.duration_minutes.errors %}
+                                    <div class="text-danger">{{ form.duration_minutes.errors }}</div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.location.id_for_label }}" class="form-label">Location</label>
+                                {{ form.location|add_class:"form-control" }}
+                                {% if form.location.errors %}
+                                    <div class="text-danger">{{ form.location.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">Physical location or "Online" for virtual meetings</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.meeting_url.id_for_label }}" class="form-label">Meeting URL</label>
+                                {{ form.meeting_url|add_class:"form-control" }}
+                                {% if form.meeting_url.errors %}
+                                    <div class="text-danger">{{ form.meeting_url.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">Video conference link (Zoom, Teams, etc.)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.primary_contact.id_for_label }}" class="form-label">Primary Contact</label>
+                        {{ form.primary_contact|add_class:"form-select" }}
+                        {% if form.primary_contact.errors %}
+                            <div class="text-danger">{{ form.primary_contact.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.attendees_notes.id_for_label }}" class="form-label">Attendees</label>
+                        {{ form.attendees_notes|add_class:"form-control" }}
+                        {% if form.attendees_notes.errors %}
+                            <div class="text-danger">{{ form.attendees_notes.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">List all meeting attendees</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.agenda.id_for_label }}" class="form-label">Agenda</label>
+                        {{ form.agenda|add_class:"form-control" }}
+                        {% if form.agenda.errors %}
+                            <div class="text-danger">{{ form.agenda.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    {% if form.meeting_notes %}
+                    <div class="mb-3">
+                        <label for="{{ form.meeting_notes.id_for_label }}" class="form-label">Meeting Notes</label>
+                        {{ form.meeting_notes|add_class:"form-control" }}
+                        {% if form.meeting_notes.errors %}
+                            <div class="text-danger">{{ form.meeting_notes.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if form.outcome %}
+                    <div class="mb-3">
+                        <label for="{{ form.outcome.id_for_label }}" class="form-label">Outcome & Next Steps</label>
+                        {{ form.outcome|add_class:"form-control" }}
+                        {% if form.outcome.errors %}
+                            <div class="text-danger">{{ form.outcome.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <hr>
+                    <h6>Related Records</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.related_account.id_for_label }}" class="form-label">Related Account</label>
+                                {{ form.related_account|add_class:"form-select" }}
+                                {% if form.related_account.errors %}
+                                    <div class="text-danger">{{ form.related_account.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.related_contact.id_for_label }}" class="form-label">Related Contact</label>
+                                {{ form.related_contact|add_class:"form-select" }}
+                                {% if form.related_contact.errors %}
+                                    <div class="text-danger">{{ form.related_contact.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.related_lead.id_for_label }}" class="form-label">Related Lead</label>
+                                {{ form.related_lead|add_class:"form-select" }}
+                                {% if form.related_lead.errors %}
+                                    <div class="text-danger">{{ form.related_lead.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.related_opportunity.id_for_label }}" class="form-label">Related Opportunity</label>
+                                {{ form.related_opportunity|add_class:"form-select" }}
+                                {% if form.related_opportunity.errors %}
+                                    <div class="text-danger">{{ form.related_opportunity.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'tasks:meeting_list' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Meeting
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Tips</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-info-circle text-info"></i> <strong>Subject:</strong> Use a clear, descriptive meeting title</li>
+                    <li><i class="fas fa-clock text-warning"></i> <strong>Time:</strong> Consider all attendees' time zones</li>
+                    <li><i class="fas fa-map-marker-alt text-success"></i> <strong>Location:</strong> Specify room number or "Online" for virtual meetings</li>
+                    <li><i class="fas fa-list text-primary"></i> <strong>Agenda:</strong> Prepare an agenda to keep the meeting focused</li>
+                    <li><i class="fas fa-link text-info"></i> <strong>Related Records:</strong> Link to relevant accounts, contacts, or opportunities</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

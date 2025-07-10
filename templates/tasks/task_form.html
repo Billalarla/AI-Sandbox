@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}
+    {% if object %}Edit Task{% else %}Create Task{% endif %} - CRM System
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'tasks:list' %}">Tasks</a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if object %}Edit Task{% else %}Create Task{% endif %}
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-{% if object %}edit{% else %}plus{% endif %} text-primary"></i>
+        {% if object %}Edit Task: {{ object.subject }}{% else %}Create New Task{% endif %}
+    </h1>
+</div>
+
+<form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Task Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Task Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.subject.id_for_label }}" class="form-label">Subject <span class="text-danger">*</span></label>
+                                {{ form.subject|add_class:"form-control" }}
+                                {% if form.subject.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.subject.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.task_type.id_for_label }}" class="form-label">Type</label>
+                                {{ form.task_type|add_class:"form-select" }}
+                                {% if form.task_type.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.task_type.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.priority.id_for_label }}" class="form-label">Priority</label>
+                                {{ form.priority|add_class:"form-select" }}
+                                {% if form.priority.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.priority.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                                {{ form.status|add_class:"form-select" }}
+                                {% if form.status.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.status.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.assigned_to.id_for_label }}" class="form-label">Assigned To</label>
+                                {{ form.assigned_to|add_class:"form-select" }}
+                                {% if form.assigned_to.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.assigned_to.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.start_date.id_for_label }}" class="form-label">Start Date</label>
+                                {{ form.start_date|add_class:"form-control" }}
+                                {% if form.start_date.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.start_date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.due_date.id_for_label }}" class="form-label">Due Date</label>
+                                {{ form.due_date|add_class:"form-control" }}
+                                {% if form.due_date.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.due_date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-link"></i> Related Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.related_account.id_for_label }}" class="form-label">Related Account</label>
+                                {{ form.related_account|add_class:"form-select" }}
+                                {% if form.related_account.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.related_account.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.related_contact.id_for_label }}" class="form-label">Related Contact</label>
+                                {{ form.related_contact|add_class:"form-select" }}
+                                {% if form.related_contact.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.related_contact.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.related_opportunity.id_for_label }}" class="form-label">Related Opportunity</label>
+                                {{ form.related_opportunity|add_class:"form-select" }}
+                                {% if form.related_opportunity.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.related_opportunity.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-text">Select the account, contact, or opportunity this task is related to.</div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-sticky-note"></i> Description</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                        {{ form.description|add_class:"form-control" }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-comments"></i> Comments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.comments.id_for_label }}" class="form-label">Comments</label>
+                        {{ form.comments|add_class:"form-control" }}
+                        {% if form.comments.errors %}
+                            <div class="invalid-feedback d-block">{{ form.comments.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Add any additional notes or comments about this task.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Priority Guide -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-exclamation-circle"></i> Priority Guide</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-danger me-2">High</span>
+                        <small>Urgent, needs immediate attention</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-warning me-2">Medium</span>
+                        <small>Important, complete soon</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success me-2">Low</span>
+                        <small>Normal priority, routine task</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Guide -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-list-check"></i> Status Guide</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-secondary me-2">Not Started</span>
+                        <small>Task not begun</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-warning me-2">Pending</span>
+                        <small>Waiting to start</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-info me-2">In Progress</span>
+                        <small>Currently working on</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success me-2">Completed</span>
+                        <small>Task finished</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> 
+                            {% if object %}Update Task{% else %}Create Task{% endif %}
+                        </button>
+                        <a href="{% if object %}{% url 'tasks:detail' object.pk %}{% else %}{% url 'tasks:list' %}{% endif %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+// Bootstrap form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Set datetime-local format for date fields
+document.addEventListener('DOMContentLoaded', function() {
+    var dateFields = document.querySelectorAll('input[type="datetime-local"]');
+    dateFields.forEach(function(field) {
+        if (!field.value) {
+            var now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            field.value = now.toISOString().slice(0, 16);
+        }
+    });
+});
+</script>
+
+{% endblock %}

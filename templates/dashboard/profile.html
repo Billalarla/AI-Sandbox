@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - CRM System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-user me-2"></i>User Profile</h1>
+    <a href="{% url 'password_change' %}" class="btn btn-outline-primary">
+        <i class="fas fa-lock me-1"></i>Change Password
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Username:</strong></label>
+                            <p class="form-control-plaintext">{{ user.username }}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>First Name:</strong></label>
+                            <p class="form-control-plaintext">{{ user.first_name|default:"Not set" }}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Last Name:</strong></label>
+                            <p class="form-control-plaintext">{{ user.last_name|default:"Not set" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Email:</strong></label>
+                            <p class="form-control-plaintext">{{ user.email|default:"Not set" }}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Date Joined:</strong></label>
+                            <p class="form-control-plaintext">{{ user.date_joined|date:"F d, Y" }}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Last Login:</strong></label>
+                            <p class="form-control-plaintext">{{ user.last_login|date:"F d, Y H:i"|default:"Never" }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> Profile editing functionality will be available in a future update. 
+                    For now, contact your administrator to update profile information.
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Statistics -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-user me-2"></i>Your Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-primary">{{ user.created_accounts.count }}</h4>
+                            <small class="text-muted">Accounts Created</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-success">{{ user.created_contacts.count }}</h4>
+                            <small class="text-muted">Contacts Created</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-warning">{{ user.created_opportunities.count }}</h4>
+                            <small class="text-muted">Opportunities Created</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-info">{{ user.assigned_tasks.count }}</h4>
+                            <small class="text-muted">Assigned Tasks</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Account Settings -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Account Settings</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Security</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="{% url 'password_change' %}" class="text-decoration-none">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Account</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="{% url 'logout' %}" class="text-decoration-none text-danger">
+                                <i class="fas fa-sign-out-alt me-2"></i>Sign Out
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
