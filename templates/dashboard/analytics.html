@@ -1,37 +1,300 @@
 {% extends 'base.html' %}
 
-{% block title %}Analytics - CRM System{% endblock %}
+{% block title %}Analytics Dashboard - WindCRM{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-card.success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    
+    .stat-card.warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .stat-card.info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .stat-card.primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f8f9fa;
+    }
+    
+    .chart-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .metric-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .period-selector {
+        margin-bottom: 20px;
+    }
+    
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 40px;
+    }
+    
+    .refresh-btn {
+        border: none;
+        background: none;
+        color: #6c757d;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+    
+    .refresh-btn:hover {
+        color: #495057;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1><i class="fas fa-chart-area me-2"></i>Analytics</h1>
-    <div class="btn-group" role="group">
-        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary">Dashboard</a>
-        <a href="{% url 'dashboard:reports' %}" class="btn btn-outline-secondary">Reports</a>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>
-            <strong>Analytics Dashboard</strong> - Advanced analytics and insights coming soon! 
-            This section will include detailed performance metrics, trend analysis, and predictive insights.
+    <h1><i class="fas fa-chart-line me-2"></i>Analytics Dashboard</h1>
+    <div class="period-selector">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary active" data-period="month">This Month</button>
+            <button type="button" class="btn btn-outline-primary" data-period="quarter">This Quarter</button>
+            <button type="button" class="btn btn-outline-primary" data-period="year">This Year</button>
         </div>
     </div>
 </div>
 
-<!-- Placeholder Analytics Cards -->
+<!-- Key Metrics Row -->
 <div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
-                <h5 class="card-title">Sales Trends</h5>
-                <p class="text-muted">Monthly and quarterly sales analysis</p>
-                <button class="btn btn-outline-primary btn-sm" disabled>View Details</button>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card success">
+            <div class="metric-icon">
+                <i class="fas fa-handshake"></i>
+            </div>
+            <div class="stat-number" id="deals-closed">{{ deals_closed_this_month }}</div>
+            <div class="stat-label">Deals Closed This Month</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card info">
+            <div class="metric-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-number" id="revenue">${{ revenue_this_month|floatformat:0 }}</div>
+            <div class="stat-label">Revenue This Month</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card warning">
+            <div class="metric-icon">
+                <i class="fas fa-phone"></i>
+            </div>
+            <div class="stat-number" id="calls-made">{{ calls_this_month }}</div>
+            <div class="stat-label">Calls Made This Month</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card primary">
+            <div class="metric-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-number" id="meetings-booked">{{ meetings_this_month }}</div>
+            <div class="stat-label">Meetings Booked This Month</div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Metrics Row -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card">
+            <div class="metric-icon">
+                <i class="fas fa-funnel-dollar"></i>
+            </div>
+            <div class="stat-number">${{ pipeline_value|floatformat:0 }}</div>
+            <div class="stat-label">Current Pipeline Value</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card success">
+            <div class="metric-icon">
+                <i class="fas fa-percentage"></i>
+            </div>
+            <div class="stat-number">{{ lead_conversion_rate|floatformat:1 }}%</div>
+            <div class="stat-label">Lead Conversion Rate</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card info">
+            <div class="metric-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <div class="stat-number">${{ average_deal_size|floatformat:0 }}</div>
+            <div class="stat-label">Average Deal Size</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card warning">
+            <div class="metric-icon">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div class="stat-number">{{ tasks_this_month }}</div>
+            <div class="stat-label">Tasks Created This Month</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">Monthly Revenue Trend</h5>
+                <button class="refresh-btn" onclick="refreshChart('revenue-chart', 'monthly_revenue')">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <canvas id="revenue-chart" height="100"></canvas>
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
             </div>
         </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">Activity Breakdown</h5>
+                <button class="refresh-btn" onclick="refreshChart('activity-chart', 'activity_breakdown')">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <canvas id="activity-chart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">Sales Pipeline by Stage</h5>
+                <button class="refresh-btn" onclick="refreshChart('pipeline-chart', 'sales_pipeline')">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <canvas id="pipeline-chart" height="150"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">Lead Sources</h5>
+                <button class="refresh-btn" onclick="refreshChart('leads-chart', 'lead_sources')">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <canvas id="leads-chart" height="150"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 3 -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">Weekly Activity Trends</h5>
+                <button class="refresh-btn" onclick="refreshChart('weekly-chart', 'weekly_activities')">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <canvas id="weekly-chart" height="100"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">Call Outcomes</h5>
+                <button class="refresh-btn" onclick="refreshChart('outcomes-chart', 'call_outcomes')">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <canvas id="outcomes-chart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Analytics -->
+<div class="row">
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">Deals by Stage</h5>
+                <button class="refresh-btn" onclick="refreshChart('deals-stage-chart', 'deals_by_stage')">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <canvas id="deals-stage-chart" height="150"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">Meeting Types</h5>
+                <button class="refresh-btn" onclick="refreshChart('meeting-types-chart', 'meeting_types')">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <canvas id="meeting-types-chart" height="150"></canvas>
+        </div>
+    </div>
+</div>
     </div>
     
     <div class="col-md-3 mb-3">
@@ -125,4 +388,381 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Chart instances storage
+const charts = {};
+
+// Color schemes
+const colorSchemes = {
+    primary: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'],
+    success: ['#11998e', '#38ef7d', '#06FFA5', '#24CFC5'],
+    warning: ['#f093fb', '#f5576c', '#FF6B6B', '#4ECDC4'],
+    info: ['#4facfe', '#00f2fe', '#667eea', '#764ba2'],
+    mixed: ['#667eea', '#11998e', '#f093fb', '#4facfe', '#f5576c', '#38ef7d', '#00f2fe', '#764ba2']
+};
+
+// Initialize all charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    
+    // Period selector functionality
+    document.querySelectorAll('[data-period]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            updateMetrics(this.dataset.period);
+        });
+    });
+});
+
+function initializeCharts() {
+    // Revenue Chart
+    createLineChart('revenue-chart', 'monthly_revenue');
+    
+    // Activity Breakdown
+    createDoughnutChart('activity-chart', 'activity_breakdown');
+    
+    // Sales Pipeline
+    createBarChart('pipeline-chart', 'sales_pipeline');
+    
+    // Lead Sources
+    createPieChart('leads-chart', 'lead_sources');
+    
+    // Weekly Activities
+    createMultiLineChart('weekly-chart', 'weekly_activities');
+    
+    // Call Outcomes
+    createDoughnutChart('outcomes-chart', 'call_outcomes');
+    
+    // Deals by Stage
+    createHorizontalBarChart('deals-stage-chart', 'deals_by_stage');
+    
+    // Meeting Types
+    createPolarChart('meeting-types-chart', 'meeting_types');
+}
+
+function createLineChart(canvasId, dataType) {
+    fetch(`{% url 'dashboard:analytics_data' %}?type=${dataType}`)
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            charts[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(item => item.month),
+                    datasets: [{
+                        label: 'Revenue',
+                        data: data.map(item => item.revenue),
+                        borderColor: colorSchemes.primary[0],
+                        backgroundColor: colorSchemes.primary[0] + '20',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: colorSchemes.primary[0],
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading chart data:', error));
+}
+
+function createDoughnutChart(canvasId, dataType) {
+    fetch(`{% url 'dashboard:analytics_data' %}?type=${dataType}`)
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            let labels, values;
+            if (Array.isArray(data)) {
+                labels = data.map(item => item.call_result || item.lead_source || 'Unknown');
+                values = data.map(item => item.count);
+            } else {
+                labels = Object.keys(data);
+                values = Object.values(data);
+            }
+            
+            charts[canvasId] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colorSchemes.mixed,
+                        borderWidth: 0,
+                        hoverBorderWidth: 3,
+                        hoverBorderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading chart data:', error));
+}
+
+function createBarChart(canvasId, dataType) {
+    fetch(`{% url 'dashboard:analytics_data' %}?type=${dataType}`)
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            charts[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item.sales_stage ? item.sales_stage.replace('_', ' ').toUpperCase() : 'Unknown'),
+                    datasets: [{
+                        label: 'Pipeline Value',
+                        data: data.map(item => item.total_amount || 0),
+                        backgroundColor: colorSchemes.primary[0] + '80',
+                        borderColor: colorSchemes.primary[0],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading chart data:', error));
+}
+
+function createPieChart(canvasId, dataType) {
+    fetch(`{% url 'dashboard:analytics_data' %}?type=${dataType}`)
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            charts[canvasId] = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.map(item => item.lead_source || 'Unknown'),
+                    datasets: [{
+                        data: data.map(item => item.count),
+                        backgroundColor: colorSchemes.mixed,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading chart data:', error));
+}
+
+function createMultiLineChart(canvasId, dataType) {
+    fetch(`{% url 'dashboard:analytics_data' %}?type=${dataType}`)
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            charts[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(item => item.day),
+                    datasets: [
+                        {
+                            label: 'Calls',
+                            data: data.map(item => item.calls),
+                            borderColor: colorSchemes.warning[0],
+                            backgroundColor: colorSchemes.warning[0] + '20',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Meetings',
+                            data: data.map(item => item.meetings),
+                            borderColor: colorSchemes.success[0],
+                            backgroundColor: colorSchemes.success[0] + '20',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Tasks',
+                            data: data.map(item => item.tasks),
+                            borderColor: colorSchemes.info[0],
+                            backgroundColor: colorSchemes.info[0] + '20',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading chart data:', error));
+}
+
+function createHorizontalBarChart(canvasId, dataType) {
+    fetch(`{% url 'dashboard:analytics_data' %}?type=${dataType}`)
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            charts[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item.sales_stage ? item.sales_stage.replace('_', ' ').toUpperCase() : 'Unknown'),
+                    datasets: [{
+                        label: 'Number of Deals',
+                        data: data.map(item => item.count),
+                        backgroundColor: colorSchemes.primary[1] + '80',
+                        borderColor: colorSchemes.primary[1],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading chart data:', error));
+}
+
+function createPolarChart(canvasId, dataType) {
+    fetch(`{% url 'dashboard:analytics_data' %}?type=${dataType}`)
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            charts[canvasId] = new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: data.map(item => item.meeting_type ? item.meeting_type.replace('_', ' ').toUpperCase() : 'Unknown'),
+                    datasets: [{
+                        data: data.map(item => item.count),
+                        backgroundColor: colorSchemes.mixed.map(color => color + '80'),
+                        borderColor: colorSchemes.mixed,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading chart data:', error));
+}
+
+function refreshChart(canvasId, dataType) {
+    if (charts[canvasId]) {
+        charts[canvasId].destroy();
+    }
+    
+    // Show loading spinner
+    const container = document.getElementById(canvasId).parentElement;
+    const spinner = container.querySelector('.loading-spinner');
+    if (spinner) {
+        spinner.style.display = 'block';
+    }
+    
+    // Recreate chart based on type
+    setTimeout(() => {
+        if (dataType === 'monthly_revenue') {
+            createLineChart(canvasId, dataType);
+        } else if (dataType === 'activity_breakdown' || dataType === 'call_outcomes') {
+            createDoughnutChart(canvasId, dataType);
+        } else if (dataType === 'sales_pipeline') {
+            createBarChart(canvasId, dataType);
+        } else if (dataType === 'lead_sources') {
+            createPieChart(canvasId, dataType);
+        } else if (dataType === 'weekly_activities') {
+            createMultiLineChart(canvasId, dataType);
+        } else if (dataType === 'deals_by_stage') {
+            createHorizontalBarChart(canvasId, dataType);
+        } else if (dataType === 'meeting_types') {
+            createPolarChart(canvasId, dataType);
+        }
+        
+        if (spinner) {
+            spinner.style.display = 'none';
+        }
+    }, 500);
+}
+
+function updateMetrics(period) {
+    // This function would update the metric cards based on the selected period
+    // For now, we'll just show a notification
+    console.log('Updating metrics for period:', period);
+}
+</script>
 {% endblock %}
