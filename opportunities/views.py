@@ -4,6 +4,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from django.contrib import messages
 from .models import Opportunity
+from .forms import OpportunityForm
 
 
 class OpportunityListView(LoginRequiredMixin, ListView):
@@ -24,9 +25,8 @@ class OpportunityDetailView(LoginRequiredMixin, DetailView):
 
 class OpportunityCreateView(LoginRequiredMixin, CreateView):
     model = Opportunity
+    form_class = OpportunityForm
     template_name = 'opportunities/opportunity_form.html'
-    fields = ['name', 'account', 'contact', 'amount', 'sales_stage', 'probability', 'expected_close_date',
-              'opportunity_type', 'lead_source', 'next_step', 'description', 'assigned_to']
     
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -36,9 +36,8 @@ class OpportunityCreateView(LoginRequiredMixin, CreateView):
 
 class OpportunityUpdateView(LoginRequiredMixin, UpdateView):
     model = Opportunity
+    form_class = OpportunityForm
     template_name = 'opportunities/opportunity_form.html'
-    fields = ['name', 'account', 'contact', 'amount', 'sales_stage', 'probability', 'expected_close_date',
-              'opportunity_type', 'lead_source', 'next_step', 'description', 'assigned_to']
     
     def form_valid(self, form):
         messages.success(self.request, 'Opportunity updated successfully.')

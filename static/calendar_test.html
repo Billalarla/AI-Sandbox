@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calendar Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #calendar {
+            max-width: 900px;
+            margin: 0 auto;
+            height: 600px;
+            border: 2px solid red;
+        }
+        .test-info {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>FullCalendar Test Page</h1>
+    
+    <div class="test-info">
+        <p>Status: <span id="status">Loading...</span></p>
+    </div>
+    
+    <div id="calendar"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = 'DOM loaded';
+            
+            if (typeof FullCalendar === 'undefined') {
+                statusEl.textContent = 'FullCalendar not loaded!';
+                return;
+            }
+            
+            statusEl.textContent = 'FullCalendar loaded, creating calendar...';
+            
+            const calendarEl = document.getElementById('calendar');
+            
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                height: 500,
+                events: [
+                    {
+                        title: 'Test Event 1',
+                        start: '2025-07-15',
+                        backgroundColor: '#28a745'
+                    },
+                    {
+                        title: 'Test Event 2',
+                        start: '2025-07-16T10:00:00',
+                        end: '2025-07-16T12:00:00',
+                        backgroundColor: '#dc3545'
+                    }
+                ]
+            });
+            
+            calendar.render();
+            statusEl.textContent = 'Calendar rendered!';
+        });
+    </script>
+</body>
+</html>

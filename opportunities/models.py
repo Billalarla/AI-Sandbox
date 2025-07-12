@@ -69,7 +69,10 @@ class Opportunity(models.Model):
     
     @property
     def weighted_amount(self):
-        return self.amount * (self.probability / 100)
+        if self.amount and self.probability is not None:
+            from decimal import Decimal
+            return self.amount * (Decimal(str(self.probability)) / Decimal('100'))
+        return Decimal('0')
     
     @property
     def is_won(self):

@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendar Simple Test - WindCRM{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+<style>
+    .calendar-test {
+        margin: 20px;
+        padding: 20px;
+        border: 2px solid #007bff;
+        background: white;
+    }
+    #calendar {
+        height: 600px;
+        border: 1px solid #ccc;
+        background: #fafafa;
+    }
+    .debug-info {
+        background: #e9ecef;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-test">
+    <h2>Simple Calendar Test</h2>
+    <p>This is a simplified calendar test page.</p>
+    
+    <div class="debug-info">
+        <h5>Debug Info:</h5>
+        <p><strong>Status:</strong> <span id="status-text">Loading...</span></p>
+        <p><strong>FullCalendar Version:</strong> <span id="fc-version">Checking...</span></p>
+        <p><strong>Calendar Element:</strong> <span id="cal-element">Checking...</span></p>
+    </div>
+    
+    <div id="calendar"></div>
+    
+    <div id="events-debug" style="margin-top: 20px; padding: 10px; background: #f8f9fa;">
+        <h6>Events Debug:</h6>
+        <div id="events-info">No events loaded yet</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusEl = document.getElementById('status-text');
+    const versionEl = document.getElementById('fc-version');
+    const elementEl = document.getElementById('cal-element');
+    const eventsDebugEl = document.getElementById('events-info');
+    
+    statusEl.textContent = 'DOM loaded, checking FullCalendar...';
+    
+    if (typeof FullCalendar === 'undefined') {
+        statusEl.textContent = 'ERROR: FullCalendar not loaded';
+        versionEl.textContent = 'Not available';
+        return;
+    }
+    
+    versionEl.textContent = 'FullCalendar loaded successfully';
+    statusEl.textContent = 'FullCalendar loaded, checking element...';
+    
+    const calendarEl = document.getElementById('calendar');
+    
+    if (!calendarEl) {
+        statusEl.textContent = 'ERROR: Calendar element not found';
+        elementEl.textContent = 'Not found';
+        return;
+    }
+    
+    elementEl.textContent = 'Found: ' + calendarEl.tagName + '#' + calendarEl.id;
+    statusEl.textContent = 'Creating calendar...';
+    
+    try {
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            height: 500,
+            events: function(fetchInfo, successCallback, failureCallback) {
+                statusEl.textContent = 'Loading events from API...';
+                eventsDebugEl.textContent = 'Fetching events for: ' + fetchInfo.startStr + ' to ' + fetchInfo.endStr;
+                
+                const params = new URLSearchParams({
+                    start: fetchInfo.startStr,
+                    end: fetchInfo.endStr,
+                    'types[]': 'tasks',
+                    'types[]': 'calls',
+                    'types[]': 'meetings'
+                });
+                
+                fetch('/calendar/api/events/?' + params.toString())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('HTTP ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        statusEl.textContent = `Loaded ${data.length} events successfully`;
+                        eventsDebugEl.textContent = `Successfully loaded ${data.length} events`;
+                        successCallback(data);
+                    })
+                    .catch(error => {
+                        statusEl.textContent = 'ERROR: ' + error.message;
+                        eventsDebugEl.textContent = 'Error loading events: ' + error.message;
+                        failureCallback(error);
+                    });
+            },
+            eventDidMount: function(info) {
+                console.log('Event mounted:', info.event.title);
+            },
+            datesSet: function(dateInfo) {
+                console.log('Dates changed:', dateInfo.startStr, 'to', dateInfo.endStr);
+            }
+        });
+        
+        statusEl.textContent = 'Calendar created, rendering...';
+        calendar.render();
+        statusEl.textContent = 'Calendar rendered successfully!';
+        
+    } catch (error) {
+        statusEl.textContent = 'ERROR creating calendar: ' + error.message;
+        console.error('Calendar creation error:', error);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,536 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendar - CRM System{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+<style>
+    .calendar-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 10px;
+    }
+    
+    .filters-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .calendar-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        min-height: 700px;
+    }
+    
+    #calendar {
+        height: 600px;
+        width: 100%;
+    }
+    
+    .fc {
+        font-family: inherit;
+    }
+    
+    .fc-event {
+        border-radius: 6px;
+        border: none !important;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .fc-event:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .fc-toolbar {
+        margin-bottom: 1.5rem;
+    }
+    
+    .fc-toolbar-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .fc-button {
+        background: #007bff;
+        border: #007bff;
+        border-radius: 6px;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .fc-button:hover {
+        background: #0056b3;
+        border-color: #0056b3;
+    }
+    
+    .fc-button-primary:not(:disabled).fc-button-active {
+        background: #0056b3;
+        border-color: #0056b3;
+    }
+    
+    .filter-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-group label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .event-type-checkboxes {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .form-check-input:checked {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    
+    .legend {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+    
+    .action-buttons {
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="calendar-header text-center">
+        <div class="container">
+            <h1 class="display-4 mb-3">
+                <i class="fas fa-calendar-alt me-3"></i>
+                Calendar
+            </h1>
+            <p class="lead mb-4">Manage your tasks, calls, and meetings in one place</p>
+            <div class="d-flex justify-content-center action-buttons">
+                <a href="{% url 'tasks:create' %}" class="btn btn-light btn-lg me-2">
+                    <i class="fas fa-plus me-2"></i>Add Task
+                </a>
+                <a href="{% url 'tasks:call_create' %}" class="btn btn-light btn-lg me-2">
+                    <i class="fas fa-phone me-2"></i>Add Call
+                </a>
+                <a href="{% url 'tasks:meeting_create' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-users me-2"></i>Add Meeting
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filters -->
+        <div class="filters-card">
+            <h5 class="mb-3">
+                <i class="fas fa-filter me-2"></i>Filters
+            </h5>
+            
+            <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="filter-group">
+                        <label for="account-filter">Account</label>
+                        <select id="account-filter" class="form-select">
+                            <option value="">All Accounts</option>
+                            {% for account in accounts %}
+                                <option value="{{ account.id }}">{{ account.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="filter-group">
+                        <label for="user-filter">Assigned User</label>
+                        <select id="user-filter" class="form-select">
+                            <option value="">All Users</option>
+                            {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.get_full_name|default:user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="filter-group">
+                        <label>Event Types</label>
+                        <div class="event-type-checkboxes">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="tasks" id="filter-tasks" checked>
+                                <label class="form-check-label" for="filter-tasks">
+                                    📋 Tasks
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="calls" id="filter-calls" checked>
+                                <label class="form-check-label" for="filter-calls">
+                                    📞 Calls
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="meetings" id="filter-meetings" checked>
+                                <label class="form-check-label" for="filter-meetings">
+                                    🤝 Meetings
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #dc3545;"></div>
+                    <span>High Priority / No Show</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #fd7e14;"></div>
+                    <span>Medium Priority / In Progress</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #28a745;"></div>
+                    <span>Low Priority / Completed</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #0d6efd;"></div>
+                    <span>Scheduled</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #ffc107;"></div>
+                    <span>Postponed</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #6c757d;"></div>
+                    <span>Cancelled / Default</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="calendar-card">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">Event Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="eventModalBody">
+                <!-- Event details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="editEventBtn" class="btn btn-primary">Edit</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter elements
+    const accountFilter = document.getElementById('account-filter');
+    const userFilter = document.getElementById('user-filter');
+    const eventTypeFilters = document.querySelectorAll('input[type="checkbox"]');
+    
+    // Calendar element
+    const calendarEl = document.getElementById('calendar');
+    
+    // Check if FullCalendar is loaded
+    if (typeof FullCalendar === 'undefined') {
+        console.error('FullCalendar library not loaded');
+        return;
+    }
+    
+    // Check if calendar element exists
+    if (!calendarEl) {
+        console.error('Calendar element not found');
+        return;
+    }
+    
+    // Initialize calendar
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        height: 600,
+        aspectRatio: 1.35,
+        events: loadEvents,
+        eventClick: handleEventClick,
+        dayMaxEvents: 3,
+        moreLinkClick: 'popover',
+        eventDisplay: 'block',
+        displayEventTime: true,
+        eventTimeFormat: {
+            hour: 'numeric',
+            minute: '2-digit',
+            meridiem: 'short'
+        },
+        loading: function(isLoading) {
+            if (isLoading) {
+                console.log('Calendar is loading events...');
+            } else {
+                console.log('Calendar finished loading events');
+            }
+        },
+        eventDidMount: function(info) {
+            // Add tooltip
+            info.el.title = info.event.title + ' - Click for details';
+        },
+        datesSet: function(dateInfo) {
+            console.log('Calendar dates changed:', dateInfo.startStr, 'to', dateInfo.endStr);
+        }
+    });
+    
+    try {
+        calendar.render();
+        console.log('Calendar rendered successfully');
+    } catch (error) {
+        console.error('Calendar render error:', error);
+        return;
+    }
+    
+    // Filter event listeners
+    accountFilter.addEventListener('change', () => {
+        calendar.refetchEvents();
+    });
+    
+    userFilter.addEventListener('change', () => {
+        calendar.refetchEvents();
+    });
+    
+    eventTypeFilters.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            calendar.refetchEvents();
+        });
+    });
+    
+    // Load events function
+    function loadEvents(fetchInfo, successCallback, failureCallback) {
+        const accountId = accountFilter.value;
+        const userId = userFilter.value;
+        const selectedTypes = Array.from(eventTypeFilters)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        
+        console.log('Loading events with filters:', {
+            account: accountId,
+            user: userId,
+            types: selectedTypes,
+            start: fetchInfo.startStr,
+            end: fetchInfo.endStr
+        });
+        
+        const params = new URLSearchParams({
+            start: fetchInfo.startStr,
+            end: fetchInfo.endStr
+        });
+        
+        if (accountId) params.append('account_id', accountId);
+        if (userId) params.append('user_id', userId);
+        selectedTypes.forEach(type => params.append('types[]', type));
+        
+        fetch(`{% url 'calendar_app:calendar_events_api' %}?${params}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(`Loaded ${data.length} events:`, data);
+                successCallback(data);
+            })
+            .catch(error => {
+                console.error('Error loading events:', error);
+                failureCallback(error);
+            });
+    }
+    
+    // Handle event click
+    function handleEventClick(info) {
+        const event = info.event;
+        const props = event.extendedProps;
+        
+        console.log('Event clicked:', event.title, props);
+        
+        // Show modal with event details
+        showEventModal(event);
+    }
+    
+    // Show event details modal
+    function showEventModal(event) {
+        const props = event.extendedProps;
+        const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+        
+        document.getElementById('eventModalLabel').textContent = event.title;
+        
+        let modalBody = `
+            <div class="row">
+                <div class="col-sm-3"><strong>Type:</strong></div>
+                <div class="col-sm-9">${props.type.charAt(0).toUpperCase() + props.type.slice(1)}</div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-sm-3"><strong>Status:</strong></div>
+                <div class="col-sm-9">
+                    <span class="badge bg-secondary">${props.status.replace('_', ' ').toUpperCase()}</span>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-sm-3"><strong>Assigned To:</strong></div>
+                <div class="col-sm-9">${props.assigned_to}</div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-sm-3"><strong>Start:</strong></div>
+                <div class="col-sm-9">${event.start ? event.start.toLocaleString() : 'Not set'}</div>
+            </div>
+        `;
+        
+        if (event.end && !event.allDay) {
+            modalBody += `
+                <div class="row mt-2">
+                    <div class="col-sm-3"><strong>End:</strong></div>
+                    <div class="col-sm-9">${event.end.toLocaleString()}</div>
+                </div>
+            `;
+        }
+        
+        // Add type-specific information
+        if (props.type === 'task' && props.priority) {
+            modalBody += `
+                <div class="row mt-2">
+                    <div class="col-sm-3"><strong>Priority:</strong></div>
+                    <div class="col-sm-9">
+                        <span class="badge bg-${props.priority === 'high' ? 'danger' : props.priority === 'medium' ? 'warning' : 'success'}">
+                            ${props.priority.toUpperCase()}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (props.type === 'call') {
+            if (props.phone_number) {
+                modalBody += `
+                    <div class="row mt-2">
+                        <div class="col-sm-3"><strong>Phone:</strong></div>
+                        <div class="col-sm-9">${props.phone_number}</div>
+                    </div>
+                `;
+            }
+            if (props.call_type) {
+                modalBody += `
+                    <div class="row mt-2">
+                        <div class="col-sm-3"><strong>Call Type:</strong></div>
+                        <div class="col-sm-9">${props.call_type}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        if (props.type === 'meeting') {
+            if (props.location) {
+                modalBody += `
+                    <div class="row mt-2">
+                        <div class="col-sm-3"><strong>Location:</strong></div>
+                        <div class="col-sm-9">${props.location}</div>
+                    </div>
+                `;
+            }
+            if (props.meeting_type) {
+                modalBody += `
+                    <div class="row mt-2">
+                        <div class="col-sm-3"><strong>Meeting Type:</strong></div>
+                        <div class="col-sm-9">${props.meeting_type}</div>
+                    </div>
+                `;
+            }
+            if (props.meeting_url) {
+                modalBody += `
+                    <div class="row mt-2">
+                        <div class="col-sm-3"><strong>Meeting URL:</strong></div>
+                        <div class="col-sm-9"><a href="${props.meeting_url}" target="_blank">${props.meeting_url}</a></div>
+                    </div>
+                `;
+            }
+        }
+        
+        if (props.account) {
+            modalBody += `
+                <div class="row mt-2">
+                    <div class="col-sm-3"><strong>Account:</strong></div>
+                    <div class="col-sm-9">${props.account}</div>
+                </div>
+            `;
+        }
+        
+        if (props.description || props.agenda) {
+            modalBody += `
+                <div class="row mt-3">
+                    <div class="col-sm-3"><strong>Description:</strong></div>
+                    <div class="col-sm-9">${props.description || props.agenda || 'No description provided'}</div>
+                </div>
+            `;
+        }
+        
+        document.getElementById('eventModalBody').innerHTML = modalBody;
+        
+        if (props.url) {
+            document.getElementById('editEventBtn').href = props.url;
+            document.getElementById('editEventBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('editEventBtn').style.display = 'none';
+        }
+        
+        modal.show();
+    }
+});
+</script>
+{% endblock %}

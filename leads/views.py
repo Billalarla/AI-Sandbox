@@ -4,6 +4,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from django.contrib import messages
 from .models import Lead
+from .forms import LeadForm
 
 
 class LeadListView(LoginRequiredMixin, ListView):
@@ -24,10 +25,8 @@ class LeadDetailView(LoginRequiredMixin, DetailView):
 
 class LeadCreateView(LoginRequiredMixin, CreateView):
     model = Lead
+    form_class = LeadForm
     template_name = 'leads/lead_form.html'
-    fields = ['salutation', 'first_name', 'last_name', 'title', 'company', 'email', 'phone', 'mobile', 'website',
-              'street', 'city', 'state', 'postal_code', 'country', 'lead_source', 'status', 'industry',
-              'annual_revenue', 'employees', 'do_not_call', 'email_opt_out', 'description', 'assigned_to']
     
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -37,10 +36,8 @@ class LeadCreateView(LoginRequiredMixin, CreateView):
 
 class LeadUpdateView(LoginRequiredMixin, UpdateView):
     model = Lead
+    form_class = LeadForm
     template_name = 'leads/lead_form.html'
-    fields = ['salutation', 'first_name', 'last_name', 'title', 'company', 'email', 'phone', 'mobile', 'website',
-              'street', 'city', 'state', 'postal_code', 'country', 'lead_source', 'status', 'industry',
-              'annual_revenue', 'employees', 'do_not_call', 'email_opt_out', 'description', 'assigned_to']
     
     def form_valid(self, form):
         messages.success(self.request, 'Lead updated successfully.')

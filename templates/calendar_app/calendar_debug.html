@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendar Debug - CRM System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .debug-container {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    .debug-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #007bff;
+    }
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+    }
+    .api-test {
+        background: #e9ecef;
+        padding: 1rem;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .btn-test {
+        margin: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">
+                <i class="fas fa-bug text-warning me-2"></i>
+                Calendar Debug Panel
+            </h1>
+        </div>
+    </div>
+    
+    <!-- System Stats -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h3>{{ debug_info.accounts_count }}</h3>
+                <p class="mb-0">Accounts</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h3>{{ debug_info.users_count }}</h3>
+                <p class="mb-0">Users</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h3>{{ debug_info.tasks_count }}</h3>
+                <p class="mb-0">Tasks</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h3>{{ debug_info.calls_count }}</h3>
+                <p class="mb-0">Calls</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h3>{{ debug_info.meetings_count }}</h3>
+                <p class="mb-0">Meetings</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h3><i class="fas fa-user"></i></h3>
+                <p class="mb-0">{{ debug_info.current_user }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="debug-container">
+        <!-- Basic Info -->
+        <div class="debug-section">
+            <h5><i class="fas fa-info-circle text-primary me-2"></i>System Information</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Current User:</strong> {{ debug_info.current_user }}</p>
+                    <p><strong>Date Range:</strong> {{ debug_info.date_range }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Server Time:</strong> <span id="server-time">Loading...</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- API Tests -->
+        <div class="debug-section">
+            <h5><i class="fas fa-flask text-success me-2"></i>API Testing</h5>
+            <div class="mb-3">
+                <button id="test-api-basic" class="btn btn-primary btn-test">Test Basic API</button>
+                <button id="test-api-filtered" class="btn btn-secondary btn-test">Test Filtered API</button>
+                <button id="test-api-types" class="btn btn-info btn-test">Test Event Types</button>
+                <button id="clear-results" class="btn btn-outline-danger btn-test">Clear Results</button>
+            </div>
+            <div id="api-results" class="api-test">Click a test button to start API testing...</div>
+        </div>
+        
+        <!-- URL Tests -->
+        <div class="debug-section">
+            <h5><i class="fas fa-link text-info me-2"></i>URL Testing</h5>
+            <div class="mb-3">
+                <a href="{% url 'calendar_app:calendar' %}" class="btn btn-outline-primary btn-test" target="_blank">Main Calendar</a>
+                <a href="{% url 'calendar_app:calendar_simple' %}" class="btn btn-outline-secondary btn-test" target="_blank">Simple Calendar</a>
+                <a href="{% url 'calendar_app:calendar_events_api' %}?start=2024-01-01&end=2024-12-31" class="btn btn-outline-success btn-test" target="_blank">API Endpoint</a>
+                {% if accounts %}
+                    <a href="{% url 'calendar_app:account_calendar' account_id=accounts.first.id %}" class="btn btn-outline-info btn-test" target="_blank">Account Calendar</a>
+                {% endif %}
+                {% if users %}
+                    <a href="{% url 'calendar_app:user_calendar' user_id=users.first.id %}" class="btn btn-outline-warning btn-test" target="_blank">User Calendar</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Database Debug -->
+        <div class="debug-section">
+            <h5><i class="fas fa-database text-warning me-2"></i>Database Information</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <h6>Accounts</h6>
+                    {% for account in accounts|slice:":5" %}
+                        <p class="mb-1"><small>{{ account.name }}</small></p>
+                    {% empty %}
+                        <p class="text-muted">No accounts found</p>
+                    {% endfor %}
+                    {% if accounts.count > 5 %}
+                        <p class="text-muted"><small>... and {{ accounts.count|add:"-5" }} more</small></p>
+                    {% endif %}
+                </div>
+                <div class="col-md-4">
+                    <h6>Users</h6>
+                    {% for user in users|slice:":5" %}
+                        <p class="mb-1"><small>{{ user.get_full_name|default:user.username }}</small></p>
+                    {% empty %}
+                        <p class="text-muted">No users found</p>
+                    {% endfor %}
+                    {% if users.count > 5 %}
+                        <p class="text-muted"><small>... and {{ users.count|add:"-5" }} more</small></p>
+                    {% endif %}
+                </div>
+                <div class="col-md-4">
+                    <h6>Quick Stats</h6>
+                    <p class="mb-1"><small>Tasks (60 days): {{ debug_info.tasks_count }}</small></p>
+                    <p class="mb-1"><small>Calls (60 days): {{ debug_info.calls_count }}</small></p>
+                    <p class="mb-1"><small>Meetings (60 days): {{ debug_info.meetings_count }}</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="text-center">
+        <a href="{% url 'calendar_app:calendar' %}" class="btn btn-primary btn-lg me-3">
+            <i class="fas fa-calendar me-2"></i>Go to Calendar
+        </a>
+        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary btn-lg">
+            <i class="fas fa-home me-2"></i>Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const resultsEl = document.getElementById('api-results');
+    
+    function logResult(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const prefix = type === 'error' ? '[ERROR]' : type === 'success' ? '[SUCCESS]' : '[INFO]';
+        resultsEl.textContent += `${timestamp} ${prefix} ${message}\n`;
+        resultsEl.scrollTop = resultsEl.scrollHeight;
+    }
+    
+    function testAPI(url, description) {
+        logResult(`Testing ${description}...`);
+        logResult(`URL: ${url}`);
+        
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                logResult(`SUCCESS: Loaded ${data.length} events`, 'success');
+                if (data.length > 0) {
+                    logResult(`Sample event: ${data[0].title} (${data[0].extendedProps.type})`);
+                }
+                logResult('---');
+            })
+            .catch(error => {
+                logResult(`ERROR: ${error.message}`, 'error');
+                logResult('---');
+            });
+    }
+    
+    // API Test Buttons
+    document.getElementById('test-api-basic').addEventListener('click', function() {
+        const today = new Date();
+        const start = new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString().split('T')[0];
+        const end = new Date(today.getFullYear(), today.getMonth() + 2, 0).toISOString().split('T')[0];
+        testAPI(`{% url 'calendar_app:calendar_events_api' %}?start=${start}&end=${end}`, 'Basic API (3 months)');
+    });
+    
+    document.getElementById('test-api-filtered').addEventListener('click', function() {
+        const today = new Date();
+        const start = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+        const end = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+        
+        {% if accounts.first %}
+        testAPI(`{% url 'calendar_app:calendar_events_api' %}?start=${start}&end=${end}&account_id={{ accounts.first.id }}`, 'Filtered by Account');
+        {% else %}
+        logResult('No accounts available for filtering test', 'error');
+        {% endif %}
+    });
+    
+    document.getElementById('test-api-types').addEventListener('click', function() {
+        const today = new Date();
+        const start = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+        const end = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+        
+        testAPI(`{% url 'calendar_app:calendar_events_api' %}?start=${start}&end=${end}&types[]=tasks`, 'Tasks Only');
+        setTimeout(() => {
+            testAPI(`{% url 'calendar_app:calendar_events_api' %}?start=${start}&end=${end}&types[]=calls`, 'Calls Only');
+        }, 1000);
+        setTimeout(() => {
+            testAPI(`{% url 'calendar_app:calendar_events_api' %}?start=${start}&end=${end}&types[]=meetings`, 'Meetings Only');
+        }, 2000);
+    });
+    
+    document.getElementById('clear-results').addEventListener('click', function() {
+        resultsEl.textContent = 'Results cleared. Click a test button to start...\n';
+    });
+    
+    // Update server time every second
+    function updateTime() {
+        document.getElementById('server-time').textContent = new Date().toLocaleString();
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+});
+</script>
+{% endblock %}

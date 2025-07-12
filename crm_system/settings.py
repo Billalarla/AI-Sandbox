@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "tasks",
     "campaigns",
     "dashboard",
+    "calendar_app",
 ]
 
 MIDDLEWARE = [

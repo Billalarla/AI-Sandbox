@@ -9,6 +9,9 @@
         <a href="{% url 'accounts:edit' account.pk %}" class="btn btn-primary">
             <i class="fas fa-edit me-2"></i>Edit
         </a>
+        <a href="{% url 'calendar_app:account_calendar' account.pk %}" class="btn btn-outline-info">
+            <i class="fas fa-calendar me-2"></i>Calendar
+        </a>
         <a href="{% url 'accounts:list' %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-2"></i>Back to List
         </a>

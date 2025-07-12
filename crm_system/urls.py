@@ -30,6 +30,7 @@ urlpatterns = [
     path("opportunities/", include("opportunities.urls")),
     path("tasks/", include("tasks.urls")),
     path("campaigns/", include("campaigns.urls")),
+    path("calendar/", include("calendar_app.urls")),
     
     # Authentication URLs
     path("login/", auth_views.LoginView.as_view(template_name="registration/login.html"), name="login"),

@@ -4,6 +4,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from django.contrib import messages
 from .models import Task, Call, Meeting
+from .forms import TaskForm, CallForm, CallUpdateForm, MeetingForm, MeetingUpdateForm
 
 
 class TaskListView(LoginRequiredMixin, ListView):
@@ -24,8 +25,8 @@ class TaskDetailView(LoginRequiredMixin, DetailView):
 
 class TaskCreateView(LoginRequiredMixin, CreateView):
     model = Task
+    form_class = TaskForm
     template_name = 'tasks/task_form.html'
-    fields = ['subject', 'status', 'priority', 'task_type', 'due_date', 'start_date', 'description', 'assigned_to']
     
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -35,8 +36,8 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
 
 class TaskUpdateView(LoginRequiredMixin, UpdateView):
     model = Task
+    form_class = TaskForm
     template_name = 'tasks/task_form.html'
-    fields = ['subject', 'status', 'priority', 'task_type', 'due_date', 'start_date', 'description', 'assigned_to']
     
     def form_valid(self, form):
         messages.success(self.request, 'Task updated successfully.')
@@ -72,9 +73,8 @@ class CallDetailView(LoginRequiredMixin, DetailView):
 
 class CallCreateView(LoginRequiredMixin, CreateView):
     model = Call
+    form_class = CallForm
     template_name = 'tasks/call_form.html'
-    fields = ['subject', 'call_type', 'status', 'phone_number', 'scheduled_datetime', 'description', 
-              'related_account', 'related_contact', 'related_lead', 'related_opportunity', 'assigned_to']
     
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -84,10 +84,8 @@ class CallCreateView(LoginRequiredMixin, CreateView):
 
 class CallUpdateView(LoginRequiredMixin, UpdateView):
     model = Call
+    form_class = CallUpdateForm
     template_name = 'tasks/call_form.html'
-    fields = ['subject', 'call_type', 'status', 'call_result', 'phone_number', 'scheduled_datetime', 
-              'actual_start_time', 'actual_end_time', 'duration_minutes', 'description', 'call_notes',
-              'related_account', 'related_contact', 'related_lead', 'related_opportunity', 'assigned_to']
     
     def form_valid(self, form):
         messages.success(self.request, 'Call updated successfully.')
@@ -123,10 +121,8 @@ class MeetingDetailView(LoginRequiredMixin, DetailView):
 
 class MeetingCreateView(LoginRequiredMixin, CreateView):
     model = Meeting
+    form_class = MeetingForm
     template_name = 'tasks/meeting_form.html'
-    fields = ['subject', 'meeting_type', 'status', 'location', 'meeting_url', 'start_datetime', 'end_datetime',
-              'agenda', 'primary_contact', 'attendees_notes', 'related_account', 'related_contact', 
-              'related_lead', 'related_opportunity', 'assigned_to']
     
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -136,10 +132,8 @@ class MeetingCreateView(LoginRequiredMixin, CreateView):
 
 class MeetingUpdateView(LoginRequiredMixin, UpdateView):
     model = Meeting
+    form_class = MeetingUpdateForm
     template_name = 'tasks/meeting_form.html'
-    fields = ['subject', 'meeting_type', 'status', 'location', 'meeting_url', 'start_datetime', 'end_datetime',
-              'duration_minutes', 'agenda', 'meeting_notes', 'outcome', 'primary_contact', 'attendees_notes',
-              'related_account', 'related_contact', 'related_lead', 'related_opportunity', 'assigned_to']
     
     def form_valid(self, form):
         messages.success(self.request, 'Meeting updated successfully.')

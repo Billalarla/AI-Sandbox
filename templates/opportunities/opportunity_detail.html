@@ -152,8 +152,9 @@
                     {% endif %}
                 </p>
                 <p><strong>Expected Revenue:</strong> 
-                    {% if opportunity.amount %}
-                        <span class="text-info">${{ opportunity.amount|floatformat:2|mul:opportunity.probability|div:100|floatformat:2 }}</span>
+                    {% if opportunity.amount and opportunity.probability %}
+                        <span class="text-info">${{ opportunity.weighted_amount|floatformat:2 }}</span>
+                        <small class="text-muted">({{ opportunity.probability }}% probability)</small>
                     {% else %}
                         <span class="text-muted">-</span>
                     {% endif %}

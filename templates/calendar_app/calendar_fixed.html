@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendar Fixed Test - WindCRM{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+<style>
+    .calendar-test-container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin: 20px 0;
+    }
+    #calendar {
+        min-height: 500px;
+        border: 1px solid #ccc;
+    }
+    .debug-panel {
+        background: #f8f9fa;
+        padding: 15px;
+        margin: 20px 0;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="text-center my-4">Calendar Fixed Test</h1>
+    
+    <div class="debug-panel">
+        <h5>Debug Information:</h5>
+        <p><strong>Status:</strong> <span id="status">Loading...</span></p>
+        <p><strong>FullCalendar:</strong> <span id="fc-status">Checking...</span></p>
+        <p><strong>Element:</strong> <span id="el-status">Checking...</span></p>
+        <p><strong>Base Template:</strong> Working ✅</p>
+    </div>
+    
+    <div class="calendar-test-container">
+        <div id="calendar"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Django Calendar Test - DOM loaded');
+    
+    const statusEl = document.getElementById('status');
+    const fcStatusEl = document.getElementById('fc-status');
+    const elStatusEl = document.getElementById('el-status');
+    
+    statusEl.textContent = 'DOM loaded in Django template';
+    
+    // Check FullCalendar
+    if (typeof FullCalendar !== 'undefined') {
+        fcStatusEl.textContent = 'FullCalendar loaded ✅';
+        fcStatusEl.className = 'text-success';
+    } else {
+        fcStatusEl.textContent = 'FullCalendar NOT loaded ❌';
+        fcStatusEl.className = 'text-danger';
+        statusEl.textContent = 'ERROR: FullCalendar not loaded';
+        return;
+    }
+    
+    // Check calendar element
+    const calendarEl = document.getElementById('calendar');
+    if (calendarEl) {
+        elStatusEl.textContent = 'Calendar element found ✅';
+        elStatusEl.className = 'text-success';
+    } else {
+        elStatusEl.textContent = 'Calendar element NOT found ❌';
+        elStatusEl.className = 'text-danger';
+        statusEl.textContent = 'ERROR: Calendar element not found';
+        return;
+    }
+    
+    statusEl.textContent = 'Creating calendar in Django...';
+    
+    try {
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            height: 500,
+            events: [
+                {
+                    title: 'Django Test Event 1',
+                    start: '2025-07-15',
+                    backgroundColor: '#28a745'
+                },
+                {
+                    title: 'Django Test Event 2',
+                    start: '2025-07-16T10:00:00',
+                    end: '2025-07-16T12:00:00',
+                    backgroundColor: '#dc3545'
+                }
+            ]
+        });
+        
+        statusEl.textContent = 'Rendering Django calendar...';
+        calendar.render();
+        statusEl.textContent = 'Django Calendar rendered successfully! ✅';
+        statusEl.className = 'text-success fw-bold';
+        
+        console.log('Django Calendar rendered successfully');
+        
+    } catch (error) {
+        statusEl.textContent = 'ERROR creating Django calendar: ' + error.message;
+        statusEl.className = 'text-danger fw-bold';
+        console.error('Django Calendar error:', error);
+    }
+});
+</script>
+{% endblock %}
