@@ -9,7 +9,7 @@ import json
 
 from accounts.models import Account
 from contacts.models import Contact
-from leads.models import Lead
+from leads.models import Lead, FunnelStageHistory
 from opportunities.models import Opportunity
 from tasks.models import Task, Call, Meeting
 from campaigns.models import Campaign
@@ -98,6 +98,63 @@ class ReportsView(LoginRequiredMixin, TemplateView):
         return context
 
 
+def get_funnel_conversion_data(period_days=30):
+    """Get sales funnel conversion data for analytics"""
+    from django.db.models import Count, Q
+    from datetime import timedelta
+    from django.utils import timezone
+    
+    cutoff_date = timezone.now() - timedelta(days=period_days)
+    
+    # Get counts for each funnel stage
+    funnel_stages = [
+        'form_submitted',
+        'meeting_booked', 
+        'meeting_held',
+        'pilot_signed',
+        'deal_closed'
+    ]
+    
+    stage_counts = {}
+    stage_values = {}
+    
+    for stage in funnel_stages:
+        # Count leads that reached this stage
+        count = Lead.objects.filter(
+            Q(**{f'{stage}_at__gte': cutoff_date}) | 
+            Q(**{f'{stage}_at__isnull': False}, funnel_stage=stage)
+        ).count()
+        
+        stage_counts[stage] = count
+        
+        # Calculate total estimated value for leads at this stage
+        value = Lead.objects.filter(
+            funnel_stage=stage,
+            estimated_value__isnull=False
+        ).aggregate(total=Sum('estimated_value'))['total'] or 0
+        
+        stage_values[stage] = float(value)
+    
+    # Calculate conversion rates between stages
+    conversions = {}
+    for i in range(len(funnel_stages) - 1):
+        current_stage = funnel_stages[i]
+        next_stage = funnel_stages[i + 1]
+        
+        current_count = stage_counts[current_stage]
+        next_count = stage_counts[next_stage]
+        
+        conversion_rate = (next_count / current_count * 100) if current_count > 0 else 0
+        conversions[f'{current_stage}_to_{next_stage}'] = round(conversion_rate, 1)
+    
+    return {
+        'stage_counts': stage_counts,
+        'stage_values': stage_values,
+        'conversions': conversions,
+        'funnel_stages': funnel_stages
+    }
+
+
 class AnalyticsView(LoginRequiredMixin, TemplateView):
     template_name = 'dashboard/analytics.html'
     
@@ -150,6 +207,9 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         context['average_deal_size'] = Opportunity.objects.filter(
             sales_stage='closed_won'
         ).aggregate(avg=Avg('amount'))['avg'] or 0
+        
+        # SALES FUNNEL CONVERSION DATA - NEW!
+        context['funnel_data'] = get_funnel_conversion_data(30)
         
         return context
 
@@ -232,6 +292,18 @@ def analytics_data(request):
                 'tasks': tasks
             })
         data.reverse()
+    
+    elif chart_type == 'funnel_conversion':
+        # Get funnel conversion data
+        period_days = int(request.GET.get('period', 30))
+        funnel_data = get_funnel_conversion_data(period_days)
+        
+        data = {
+            'stages': [stage.replace('_', ' ').title() for stage in funnel_data['funnel_stages']],
+            'counts': [funnel_data['stage_counts'][stage] for stage in funnel_data['funnel_stages']],
+            'values': [funnel_data['stage_values'][stage] for stage in funnel_data['funnel_stages']],
+            'conversions': funnel_data['conversions']
+        }
     
     else:
         data = []

@@ -58,13 +58,28 @@ class Command(BaseCommand):
                 if created:
                     accounts.append(account)
         
-        # Create sample leads
+        # Create sample leads with funnel tracking
         lead_sources = ['website', 'referral', 'cold_call', 'email', 'social_media', 'event']
         statuses = ['new', 'contacted', 'qualified', 'converted', 'dead']
+        funnel_stages = ['form_submitted', 'meeting_booked', 'meeting_held', 'pilot_signed', 'deal_closed']
         
         for i in range(count):
             created_date = timezone.now() - timedelta(days=random.randint(1, 365))
-            Lead.objects.get_or_create(
+            
+            # Randomly assign funnel stage (weighted towards earlier stages)
+            stage_weights = [0.4, 0.25, 0.15, 0.1, 0.1]  # Most leads in early stages
+            funnel_stage = random.choices(funnel_stages, weights=stage_weights)[0]
+            
+            # Set timestamps based on funnel progression
+            timestamps = {}
+            stage_index = funnel_stages.index(funnel_stage)
+            
+            for j, stage in enumerate(funnel_stages[:stage_index + 1]):
+                timestamp_field = f'{stage}_at'
+                timestamp_value = created_date + timedelta(days=j * random.randint(1, 7))
+                timestamps[timestamp_field] = timestamp_value
+            
+            lead, created = Lead.objects.get_or_create(
                 email=f'lead{i}@example.com',
                 defaults={
                     'first_name': f'Lead{i}',
@@ -74,10 +89,14 @@ class Command(BaseCommand):
                     'phone': f'+1-555-{random.randint(100, 999)}-{random.randint(1000, 9999)}',
                     'lead_source': random.choice(lead_sources),
                     'status': random.choice(statuses),
+                    'funnel_stage': funnel_stage,
+                    'lead_score': random.randint(0, 100),
+                    'estimated_value': random.randint(5000, 250000) if random.choice([True, False]) else None,
                     'assigned_to': user,
                     'created_by': user,
                     'created_at': created_date,
                     'updated_at': created_date,
+                    **timestamps  # Add all the timestamp fields
                 }
             )
         
