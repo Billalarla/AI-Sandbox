@@ -66,6 +66,11 @@ class CalendarDebugView(LoginRequiredMixin, TemplateView):
         return context
 
 
+class CalendarDiagnosticPublicView(TemplateView):
+    """Public diagnostic view for testing calendar rendering"""
+    template_name = 'calendar_app/calendar_diagnostic.html'
+
+
 class AccountCalendarView(LoginRequiredMixin, TemplateView):
     template_name = 'calendar_app/account_calendar.html'
     
@@ -79,11 +84,38 @@ class AccountCalendarView(LoginRequiredMixin, TemplateView):
         except Account.DoesNotExist:
             context['account'] = None
         
+        # Get all users for the filter dropdown  
+        context['users'] = User.objects.filter(is_active=True).order_by('first_name', 'last_name')
+        
         return context
 
 
 class CalendarSimpleView(LoginRequiredMixin, TemplateView):
     template_name = 'calendar_app/calendar_simple.html'
+
+
+class CalendarPublicView(TemplateView):
+    """Public calendar view for testing - no authentication required"""
+    template_name = 'calendar_app/calendar.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get all accounts for the filter dropdown
+        context['accounts'] = Account.objects.all().order_by('name')
+        
+        # Get all users for the filter dropdown  
+        context['users'] = User.objects.filter(is_active=True).order_by('first_name', 'last_name')
+        
+        # Add debug information
+        context['debug_info'] = {
+            'accounts_count': context['accounts'].count(),
+            'users_count': context['users'].count(),
+            'current_user': 'Public Access (No Auth Required)',
+            'note': 'This is a public test view'
+        }
+        
+        return context
 
 
 class UserCalendarView(LoginRequiredMixin, TemplateView):
@@ -98,6 +130,9 @@ class UserCalendarView(LoginRequiredMixin, TemplateView):
             context['calendar_user'] = calendar_user
         except User.DoesNotExist:
             context['calendar_user'] = None
+        
+        # Get all accounts for the filter dropdown
+        context['accounts'] = Account.objects.all().order_by('name')
         
         return context
 
@@ -288,6 +323,52 @@ def calendar_events_api(request):
                 }
             })
     
+    # Get Custom Calendar Events
+    if 'events' in event_types or 'custom' in event_types:
+        from .models import CalendarEvent
+        
+        custom_event_filters = user_filter & (
+            Q(start_datetime__gte=start_datetime) & 
+            Q(start_datetime__lte=end_datetime)
+        )
+        
+        # For custom events, handle account filtering with generic foreign key
+        if account_id:
+            try:
+                account = Account.objects.get(id=account_id)
+                account_content_type = ContentType.objects.get_for_model(Account)
+                custom_event_filters &= Q(content_type=account_content_type, object_id=account.id)
+            except Account.DoesNotExist:
+                custom_event_filters &= Q(pk=None)  # No results
+        
+        custom_events = CalendarEvent.objects.filter(custom_event_filters).select_related('assigned_to', 'created_by')
+        
+        for custom_event in custom_events:
+            end_time = custom_event.end_datetime or (custom_event.start_datetime + timedelta(hours=1))
+            
+            events.append({
+                'id': f'custom_{custom_event.id}',
+                'title': f'📅 {custom_event.title}',
+                'start': custom_event.start_datetime.isoformat(),
+                'end': end_time.isoformat(),
+                'allDay': custom_event.is_all_day,
+                'backgroundColor': get_custom_event_color(custom_event.event_type),
+                'borderColor': get_custom_event_color(custom_event.event_type),
+                'textColor': '#ffffff',
+                'extendedProps': {
+                    'type': 'custom_event',
+                    'id': custom_event.id,
+                    'event_type': custom_event.event_type,
+                    'status': custom_event.status,
+                    'location': custom_event.location,
+                    'meeting_url': custom_event.meeting_url,
+                    'assigned_to': custom_event.assigned_to.get_full_name() if custom_event.assigned_to else 'Unassigned',
+                    'created_by': custom_event.created_by.get_full_name() if custom_event.created_by else 'Unknown',
+                    'description': custom_event.description[:100] + '...' if len(custom_event.description) > 100 else custom_event.description,
+                    'url': f'/calendar/events/{custom_event.id}/'
+                }
+            })
+
     logger.info(f"Returning {len(events)} events")
     return JsonResponse(events, safe=False)
 
@@ -324,6 +405,20 @@ def get_meeting_color(status):
         'postponed': '#ffc107',     # Yellow
     }
     return colors.get(status, '#6c757d')
+
+
+def get_custom_event_color(event_type):
+    """Get color based on custom event type"""
+    colors = {
+        'appointment': '#6f42c1',    # Purple
+        'reminder': '#20c997',       # Teal
+        'holiday': '#e83e8c',        # Pink
+        'personal': '#17a2b8',       # Cyan
+        'company': '#007bff',        # Blue
+        'training': '#28a745',       # Green
+        'other': '#6c757d',          # Gray
+    }
+    return colors.get(event_type, '#6c757d')  # Default gray
 
 
 def calendar_event_counts_api(request):

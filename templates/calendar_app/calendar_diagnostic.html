@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendar Debug Test{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+<style>
+    .test-container {
+        margin: 20px;
+        padding: 20px;
+        border: 2px solid red;
+        min-height: 600px;
+    }
+    
+    #test-calendar {
+        border: 2px solid blue;
+        min-height: 500px;
+        background: #f0f0f0;
+    }
+    
+    .debug-info {
+        background: yellow;
+        padding: 10px;
+        margin: 10px 0;
+        font-family: monospace;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="test-container">
+    <h1>Calendar Debug Test</h1>
+    
+    <div class="debug-info">
+        <div id="js-status">JavaScript Status: Loading...</div>
+        <div id="fc-status">FullCalendar Status: Checking...</div>
+        <div id="element-status">Element Status: Checking...</div>
+        <div id="render-status">Render Status: Not started</div>
+    </div>
+    
+    <h2>Calendar Container (should be blue box):</h2>
+    <div id="test-calendar"></div>
+    
+    <div class="debug-info">
+        <h3>DOM Debug:</h3>
+        <div id="dom-debug">Checking DOM...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+<script>
+console.log('Script tag executed');
+
+function updateStatus(elementId, message, color = 'black') {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.textContent = message;
+        el.style.color = color;
+    }
+    console.log(`[${elementId}] ${message}`);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
+    updateStatus('js-status', 'JavaScript: DOM Loaded ✓', 'green');
+    
+    // Check FullCalendar
+    if (typeof FullCalendar === 'undefined') {
+        updateStatus('fc-status', 'FullCalendar: NOT LOADED ✗', 'red');
+        return;
+    } else {
+        updateStatus('fc-status', 'FullCalendar: Loaded ✓', 'green');
+    }
+    
+    // Check element
+    const calendarEl = document.getElementById('test-calendar');
+    if (!calendarEl) {
+        updateStatus('element-status', 'Element: NOT FOUND ✗', 'red');
+        return;
+    } else {
+        updateStatus('element-status', 'Element: Found ✓', 'green');
+    }
+    
+    // DOM Debug info
+    const domInfo = `
+        Element ID: ${calendarEl.id}
+        Element tagName: ${calendarEl.tagName}
+        Element className: ${calendarEl.className}
+        Element clientWidth: ${calendarEl.clientWidth}
+        Element clientHeight: ${calendarEl.clientHeight}
+        Element offsetParent: ${calendarEl.offsetParent ? calendarEl.offsetParent.tagName : 'null'}
+        Element computed display: ${window.getComputedStyle(calendarEl).display}
+        Element computed visibility: ${window.getComputedStyle(calendarEl).visibility}
+    `;
+    document.getElementById('dom-debug').innerHTML = '<pre>' + domInfo + '</pre>';
+    
+    // Try to create calendar
+    updateStatus('render-status', 'Render: Creating calendar...', 'orange');
+    
+    try {
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            height: 400,
+            events: [
+                {
+                    title: 'Test Event',
+                    start: '2025-07-15',
+                    backgroundColor: '#ff0000'
+                }
+            ],
+            eventDidMount: function(info) {
+                console.log('Event mounted:', info.event.title);
+            }
+        });
+        
+        updateStatus('render-status', 'Render: Calendar object created, rendering...', 'orange');
+        
+        calendar.render();
+        
+        updateStatus('render-status', 'Render: SUCCESS ✓', 'green');
+        
+        // Additional debug after render
+        setTimeout(() => {
+            const fcElements = calendarEl.querySelectorAll('.fc');
+            updateStatus('render-status', `Render: SUCCESS ✓ (${fcElements.length} FC elements found)`, 'green');
+        }, 1000);
+        
+    } catch (error) {
+        updateStatus('render-status', `Render: ERROR ✗ - ${error.message}`, 'red');
+        console.error('Calendar creation error:', error);
+    }
+});
+
+// Additional checks
+window.addEventListener('load', function() {
+    console.log('Window loaded');
+});
+
+setTimeout(() => {
+    console.log('5 second timeout check');
+    const calendarEl = document.getElementById('test-calendar');
+    if (calendarEl) {
+        console.log('Calendar element still exists after 5 seconds');
+        console.log('innerHTML length:', calendarEl.innerHTML.length);
+        console.log('First 200 chars of innerHTML:', calendarEl.innerHTML.substring(0, 200));
+    }
+}, 5000);
+</script>
+{% endblock %}
