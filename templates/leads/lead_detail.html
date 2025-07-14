@@ -64,6 +64,98 @@
             </div>
         </div>
 
+        <!-- CVR Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-building"></i> CVR Information & Lead Scoring
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>CVR Number:</strong> 
+                            {% if lead.cvr_number %}
+                                <span class="badge bg-info">{{ lead.cvr_number }}</span>
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>CVR Last Updated:</strong> 
+                            {% if lead.cvr_last_updated %}
+                                {{ lead.cvr_last_updated|date:"M d, Y H:i" }}
+                            {% else %}
+                                <span class="text-muted">Never</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>ICP Score:</strong> 
+                            <span class="badge {% if lead.icp_score >= 10 %}bg-success{% elif lead.icp_score >= 8 %}bg-primary{% elif lead.icp_score >= 6 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ lead.icp_score }}/12 points
+                            </span>
+                            {% if lead.icp_score >= 10 %}
+                                <small class="text-success fw-bold">A+ Excellent Match</small>
+                            {% elif lead.icp_score >= 8 %}
+                                <small class="text-primary fw-bold">A Good Match</small>
+                            {% elif lead.icp_score >= 6 %}
+                                <small class="text-warning fw-bold">B Fair Match</small>
+                            {% else %}
+                                <small class="text-muted">C Poor Match</small>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        {% if lead.icp_score_breakdown %}
+                            <p><strong>Score Breakdown:</strong></p>
+                            <ul class="list-unstyled">
+                                <li>
+                                    {% if lead.icp_score_breakdown.company_size_match %}
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle text-danger"></i>
+                                    {% endif %}
+                                    Company Size: {{ lead.icp_score_breakdown.company_size_score }} pts
+                                </li>
+                                <li>
+                                    {% if lead.icp_score_breakdown.industry_match %}
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle text-danger"></i>
+                                    {% endif %}
+                                    Industry: {{ lead.icp_score_breakdown.industry_score }} pts
+                                </li>
+                                <li>
+                                    {% if lead.icp_score_breakdown.employee_level_match %}
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle text-danger"></i>
+                                    {% endif %}
+                                    Employee Level: {{ lead.icp_score_breakdown.employee_level_score }} pts
+                                </li>
+                                <li>
+                                    {% if lead.icp_score_breakdown.location_match %}
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle text-danger"></i>
+                                    {% endif %}
+                                    Location: {{ lead.icp_score_breakdown.location_score }} pts
+                                </li>
+                            </ul>
+                        {% endif %}
+                        
+                        <!-- CVR Actions -->
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary btn-sm" onclick="lookupCVR()">
+                                <i class="fas fa-search"></i> Lookup CVR Data
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="scoreLead()">
+                                <i class="fas fa-calculator"></i> Re-score Lead
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Contact Information -->
         <div class="card mb-4">
             <div class="card-header">
@@ -184,4 +276,135 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function lookupCVR() {
+    const cvrNumber = '{{ lead.cvr_number|default:"" }}';
+    
+    if (!cvrNumber) {
+        alert('No CVR number set for this lead. Please edit the lead to add a CVR number.');
+        return;
+    }
+    
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Looking up...';
+    button.disabled = true;
+    
+    // Make API call to lookup CVR data
+    fetch('{% url "leads:api_cvr_lookup" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            'cvr_number': cvrNumber
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`CVR Lookup Successful!\n\nCompany: ${data.cvr_data.company_name}\nIndustry: ${data.cvr_data.industry_text}\nEmployees: ${data.cvr_data.employee_count}\nCity: ${data.cvr_data.city}`);
+            
+            // Ask if user wants to update the lead with this data
+            if (confirm('Would you like to update this lead with the CVR data?')) {
+                populateLeadFromCVR();
+            }
+        } else {
+            alert(`CVR Lookup Failed: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error occurred during CVR lookup. Check console for details.');
+    })
+    .finally(() => {
+        // Restore button state
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function populateLeadFromCVR() {
+    const cvrNumber = '{{ lead.cvr_number|default:"" }}';
+    
+    if (!cvrNumber) {
+        alert('No CVR number set for this lead.');
+        return;
+    }
+    
+    // Make API call to populate lead with CVR data
+    fetch('{% url "leads:api_populate_cvr" lead.id %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            'cvr_number': cvrNumber
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Lead updated successfully with CVR data!');
+            location.reload(); // Refresh the page to show updated data
+        } else {
+            alert(`Failed to update lead: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error occurred while updating lead. Check console for details.');
+    });
+}
+
+function scoreLead() {
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scoring...';
+    button.disabled = true;
+    
+    // Make API call to score the lead
+    fetch('{% url "leads:api_score_lead" lead.id %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            'cvr_number': '{{ lead.cvr_number|default:"" }}'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const score = data.score_breakdown;
+            const grade = score.total_score >= 10 ? 'A+ (Excellent)' : 
+                         score.total_score >= 8 ? 'A (Good)' : 
+                         score.total_score >= 6 ? 'B (Fair)' : 'C (Poor)';
+            
+            alert(`Lead Scoring Complete!\n\nTotal Score: ${score.total_score}/12 points\nGrade: ${grade}\n\nBreakdown:\n• Company Size: ${score.company_size_score} pts\n• Industry: ${score.industry_score} pts\n• Employee Level: ${score.employee_level_score} pts\n• Location: ${score.location_score} pts`);
+            
+            location.reload(); // Refresh to show updated scores
+        } else {
+            alert(`Scoring Failed: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error occurred during lead scoring. Check console for details.');
+    })
+    .finally(() => {
+        // Restore button state
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+</script>
 {% endblock %}

@@ -91,6 +91,12 @@ class Lead(models.Model):
     lead_score = models.IntegerField(default=0, help_text="Lead quality score 0-100")
     estimated_value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     
+    # CVR Integration fields
+    cvr_number = models.CharField(max_length=8, blank=True, null=True, help_text="Danish CVR number")
+    cvr_last_updated = models.DateTimeField(null=True, blank=True, help_text="When CVR data was last fetched")
+    icp_score = models.IntegerField(default=4, help_text="ICP matching score (4-12 points)")
+    icp_score_breakdown = models.JSONField(default=dict, blank=True, help_text="Detailed ICP scoring breakdown")
+    
     # Communication preferences
     do_not_call = models.BooleanField(default=False)
     email_opt_out = models.BooleanField(default=False)

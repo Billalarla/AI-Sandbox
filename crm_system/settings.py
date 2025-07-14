@@ -164,3 +164,28 @@ CELERY_RESULT_BACKEND = "redis://localhost:6379"
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
+
+# CVR API Configuration for Lead Scoring
+# Get your API key from https://cvrapi.dk/
+CVR_API_KEY = "44243385"  # Using user CVR number for testing (replace with actual API key)
+# CVR_API_KEY = "your-cvr-api-key-here"
+
+# Lead Scoring Configuration
+LEAD_SCORING = {
+    'ICP_CRITERIA': {
+        'MIN_EMPLOYEES': 200,
+        'TARGET_INDUSTRIES': ['FMCG', 'Retail', 'SaaS', 'Software', 'Technology', 'E-commerce'],
+        'TARGET_CITIES': ['Copenhagen', 'København', 'Aarhus', 'Århus', 'Odense', 'Aalborg'],
+        'TARGET_EMPLOYEE_LEVELS': [
+            'Manager', 'Senior Manager', 'Director', 'Senior Director',
+            'VP', 'Vice President', 'CEO', 'CTO', 'CFO', 'COO',
+            'Head of', 'Chief', 'Executive', 'Principal', 'Lead'
+        ]
+    },
+    'SCORING': {
+        'POINTS_PER_MATCH': 3,
+        'POINTS_PER_MISS': 1,
+        'MIN_SCORE': 4,
+        'MAX_SCORE': 12
+    }
+}
