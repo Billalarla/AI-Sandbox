@@ -1,8 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.views import View
 from .models import Task, Call, Meeting
 from .forms import TaskForm, CallForm, CallUpdateForm, MeetingForm, MeetingUpdateForm
 
@@ -52,6 +53,17 @@ class TaskDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Task deleted successfully.')
         return super().delete(request, *args, **kwargs)
+
+
+class TaskCompleteView(LoginRequiredMixin, View):
+    """View to mark a task as completed"""
+    
+    def post(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+        task.status = 'completed'
+        task.save()
+        messages.success(request, f'Task "{task.subject}" has been marked as completed.')
+        return redirect('tasks:detail', pk=pk)
 
 
 # Call Views

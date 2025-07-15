@@ -305,6 +305,70 @@ def analytics_data(request):
             'conversions': funnel_data['conversions']
         }
     
+    elif chart_type == 'activity_heatmap':
+        # Get upcoming scheduled activities heatmap data
+        period_days = int(request.GET.get('period', 30))
+        
+        # Get date range for FUTURE dates
+        start_date = timezone.now().date()  # Today
+        end_date = start_date + timedelta(days=period_days)  # Next N days
+        
+        # Initialize daily activity data
+        daily_activities = {}
+        
+        # Get upcoming scheduled tasks (due_date)
+        upcoming_tasks = Task.objects.filter(
+            due_date__date__range=[start_date, end_date]
+        ).values('due_date__date').annotate(count=Count('id'))
+        
+        for task_data in upcoming_tasks:
+            date_key = task_data['due_date__date']
+            daily_activities[date_key] = daily_activities.get(date_key, 0) + task_data['count']
+        
+        # Get upcoming scheduled calls (scheduled_datetime)
+        upcoming_calls = Call.objects.filter(
+            scheduled_datetime__date__range=[start_date, end_date]
+        ).values('scheduled_datetime__date').annotate(count=Count('id'))
+        
+        for call_data in upcoming_calls:
+            date_key = call_data['scheduled_datetime__date']
+            daily_activities[date_key] = daily_activities.get(date_key, 0) + call_data['count']
+        
+        # Get upcoming scheduled meetings (start_datetime)
+        upcoming_meetings = Meeting.objects.filter(
+            start_datetime__date__range=[start_date, end_date]
+        ).values('start_datetime__date').annotate(count=Count('id'))
+        
+        for meeting_data in upcoming_meetings:
+            date_key = meeting_data['start_datetime__date']
+            daily_activities[date_key] = daily_activities.get(date_key, 0) + meeting_data['count']
+        
+        # Create array of daily data for the period
+        daily_data = []
+        max_value = 0
+        
+        for i in range(period_days):
+            current_date = start_date + timedelta(days=i)
+            activity_count = daily_activities.get(current_date, 0)
+            max_value = max(max_value, activity_count)
+            
+            daily_data.append({
+                'date': current_date.isoformat(),
+                'count': activity_count,
+                'day_name': current_date.strftime('%a'),
+                'day_number': current_date.day,
+                'month_name': current_date.strftime('%b'),
+                'is_weekend': current_date.weekday() >= 5
+            })
+        
+        data = {
+            'daily_data': daily_data,
+            'max_value': max_value if max_value > 0 else 1,
+            'period_days': period_days,
+            'start_date': start_date.isoformat(),
+            'end_date': end_date.isoformat()
+        }
+    
     else:
         data = []
     

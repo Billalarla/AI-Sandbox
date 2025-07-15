@@ -260,6 +260,170 @@
             font-size: 0.75rem;
         }
     }
+    
+    /* Activity Heatmap Styles - Calendar Style */
+    .heatmap-container {
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 8px;
+    }
+    
+    .heatmap-legend {
+        margin-bottom: 15px;
+    }
+    
+    .heatmap-color-box {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        border: 1px solid #d1d5db;
+    }
+    
+    .heatmap-calendar {
+        max-width: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .heatmap-months-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+    
+    .heatmap-month-section {
+        display: flex;
+        flex-direction: column;
+        min-width: 200px;
+        max-width: 250px;
+    }
+    
+    .heatmap-weekday-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+        margin-bottom: 5px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #6b7280;
+        text-align: center;
+        width: 100%;
+    }
+    
+    .heatmap-month-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+    
+    .heatmap-month-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+        width: 100%;
+    }
+    
+    .heatmap-day-tile {
+        width: 20px;
+        height: 20px;
+        border-radius: 3px;
+        border: 1px solid #e5e7eb;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        color: #374151;
+        font-weight: 500;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .heatmap-day-tile:hover {
+        transform: scale(1.15);
+        border-color: #6b7280;
+        z-index: 10;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .heatmap-day-tile.weekend {
+        opacity: 0.8;
+        border-style: dashed;
+    }
+    
+    /* Activity level colors */
+    .heatmap-day-tile.level-0 { background-color: #ebedf0; }
+    .heatmap-day-tile.level-1 { background-color: #c6e48b; }
+    .heatmap-day-tile.level-2 { background-color: #7bc96f; }
+    .heatmap-day-tile.level-3 { background-color: #239a3b; color: white; }
+    .heatmap-day-tile.level-4 { background-color: #196127; color: white; }
+    
+    /* Tooltip for heatmap */
+    .heatmap-tooltip {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    
+    .heatmap-tooltip.show {
+        opacity: 1;
+    }
+    
+    .heatmap-tooltip::before {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: rgba(0, 0, 0, 0.8);
+    }
+    
+    /* Responsive adjustments for heatmap */
+    @media (max-width: 768px) {
+        .heatmap-months-container {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .heatmap-month-section {
+            min-width: auto;
+            max-width: 100%;
+        }
+        
+        .heatmap-day-tile {
+            width: 18px;
+            height: 18px;
+            font-size: 8px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .heatmap-day-tile {
+            width: 16px;
+            height: 16px;
+            font-size: 7px;
+        }
+        
+        .heatmap-month-label {
+            font-size: 12px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -485,6 +649,55 @@
                 </div>
                 <div class="funnel-chart-container">
                     <canvas id="funnel-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activity Heatmap Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="chart-container">
+            <div class="chart-header">
+                <div>
+                    <h5 class="chart-title">
+                        <i class="fas fa-fire text-danger me-2"></i>
+                        Upcoming Activities Heatmap
+                    </h5>
+                    <small class="text-muted">Scheduled meetings, calls & tasks for upcoming days</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <select id="heatmap-period" class="form-select form-select-sm" style="width: auto;" onchange="refreshHeatmap()">
+                        <option value="30" selected>Next 30 days</option>
+                        <option value="60">Next 60 days</option>
+                        <option value="90">Next 90 days</option>
+                    </select>
+                    <button class="refresh-btn" onclick="refreshHeatmap()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="heatmap-container" id="heatmap-container">
+                <div class="heatmap-legend d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted small">Less scheduled</span>
+                    <div class="d-flex gap-1">
+                        <div class="heatmap-color-box" style="background-color: #ebedf0;"></div>
+                        <div class="heatmap-color-box" style="background-color: #c6e48b;"></div>
+                        <div class="heatmap-color-box" style="background-color: #7bc96f;"></div>
+                        <div class="heatmap-color-box" style="background-color: #239a3b;"></div>
+                        <div class="heatmap-color-box" style="background-color: #196127;"></div>
+                    </div>
+                    <span class="text-muted small">More scheduled</span>
+                </div>
+                
+                <div class="heatmap-calendar" id="heatmap-calendar">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                
+                <div class="loading-spinner" id="heatmap-loading" style="display: none;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
                 </div>
             </div>
         </div>
@@ -725,6 +938,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeCharts() {
     // Sales Funnel Chart - NEW!
     createFunnelChart();
+    
+    // Activity Heatmap - NEW!
+    createActivityHeatmap();
     
     // Revenue Chart
     createLineChart('revenue-chart', 'monthly_revenue');
@@ -1256,6 +1472,172 @@ function renderFunnelChart(data) {
 
 function refreshFunnelChart() {
     createFunnelChart();
+}
+
+// ACTIVITY HEATMAP FUNCTIONS - NEW!
+function createActivityHeatmap() {
+    const period = document.getElementById('heatmap-period').value;
+    
+    // Show loading spinner
+    document.getElementById('heatmap-loading').style.display = 'block';
+    
+    // Use the analytics_data URL
+    fetch(`{% url 'dashboard:analytics_data' %}?type=activity_heatmap&period=${period}`)
+        .then(response => response.json())
+        .then(data => {
+            renderActivityHeatmap(data);
+            document.getElementById('heatmap-loading').style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Error loading heatmap data:', error);
+            document.getElementById('heatmap-loading').style.display = 'none';
+        });
+}
+
+function renderActivityHeatmap(data) {
+    const calendarContainer = document.getElementById('heatmap-calendar');
+    const maxValue = data.max_value || 1;
+    
+    // Clear existing content
+    calendarContainer.innerHTML = '';
+    
+    // Create tooltip if it doesn't exist
+    let tooltip = document.getElementById('heatmap-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'heatmap-tooltip';
+        tooltip.className = 'heatmap-tooltip';
+        document.body.appendChild(tooltip);
+    }
+    
+    // Container for all months in horizontal layout
+    const monthsContainer = document.createElement('div');
+    monthsContainer.className = 'heatmap-months-container';
+    
+    // Group days by month for month labels
+    const monthGroups = {};
+    data.daily_data.forEach(dayData => {
+        const date = new Date(dayData.date);
+        const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+        if (!monthGroups[monthKey]) {
+            monthGroups[monthKey] = {
+                name: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+                days: []
+            };
+        }
+        monthGroups[monthKey].days.push(dayData);
+    });
+    
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    // Create month sections
+    Object.keys(monthGroups).forEach(monthKey => {
+        const monthGroup = monthGroups[monthKey];
+        
+        // Month section container
+        const monthSection = document.createElement('div');
+        monthSection.className = 'heatmap-month-section';
+        
+        // Month header
+        const monthHeader = document.createElement('div');
+        monthHeader.className = 'heatmap-month-label';
+        monthHeader.textContent = monthGroup.name;
+        monthSection.appendChild(monthHeader);
+        
+        // Weekday header for this month
+        const weekdayHeader = document.createElement('div');
+        weekdayHeader.className = 'heatmap-weekday-header';
+        
+        weekdays.forEach(day => {
+            const dayLabel = document.createElement('div');
+            dayLabel.textContent = day;
+            dayLabel.style.cssText = 'text-align: center;';
+            weekdayHeader.appendChild(dayLabel);
+        });
+        monthSection.appendChild(weekdayHeader);
+        
+        // Month grid container
+        const monthGrid = document.createElement('div');
+        monthGrid.className = 'heatmap-month-grid';
+        
+        // Add empty cells for proper calendar layout
+        const firstDay = new Date(monthGroup.days[0].date);
+        const startDayOfWeek = (firstDay.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+        
+        for (let i = 0; i < startDayOfWeek; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.style.cssText = 'width: 20px; height: 20px;';
+            monthGrid.appendChild(emptyCell);
+        }
+        
+        // Add day tiles
+        monthGroup.days.forEach(dayData => {
+            const dayTile = document.createElement('div');
+            dayTile.className = 'heatmap-day-tile';
+            
+            // Calculate activity level (0-4)
+            const level = maxValue === 0 ? 0 : Math.min(4, Math.floor((dayData.count / maxValue) * 5));
+            dayTile.classList.add(`level-${level}`);
+            
+            // Add weekend styling
+            if (dayData.is_weekend) {
+                dayTile.classList.add('weekend');
+            }
+            
+            // Day number
+            dayTile.textContent = dayData.day_number;
+            
+            // Add data attributes
+            dayTile.dataset.date = dayData.date;
+            dayTile.dataset.count = dayData.count;
+            dayTile.dataset.dayName = dayData.day_name;
+            dayTile.dataset.monthName = dayData.month_name;
+            
+            // Add hover events
+            dayTile.addEventListener('mouseenter', (e) => showCalendarTooltip(e, dayData));
+            dayTile.addEventListener('mouseleave', hideHeatmapTooltip);
+            
+            monthGrid.appendChild(dayTile);
+        });
+        
+        monthSection.appendChild(monthGrid);
+        monthsContainer.appendChild(monthSection);
+    });
+    
+    // Add months container to main calendar
+    calendarContainer.appendChild(monthsContainer);
+}
+
+function showCalendarTooltip(event, dayData) {
+    const tooltip = document.getElementById('heatmap-tooltip');
+    const date = new Date(dayData.date);
+    const dateString = date.toLocaleDateString('en-US', { 
+        weekday: 'long',
+        month: 'long', 
+        day: 'numeric',
+        year: 'numeric'
+    });
+    
+    tooltip.innerHTML = `
+        <strong>${dateString}</strong><br>
+        ${dayData.count} scheduled ${dayData.count === 1 ? 'activity' : 'activities'}
+    `;
+    
+    const rect = event.target.getBoundingClientRect();
+    tooltip.style.left = `${rect.left + rect.width / 2}px`;
+    tooltip.style.top = `${rect.top - 10}px`;
+    tooltip.style.transform = 'translate(-50%, -100%)';
+    
+    tooltip.classList.add('show');
+}
+
+function hideHeatmapTooltip() {
+    const tooltip = document.getElementById('heatmap-tooltip');
+    tooltip.classList.remove('show');
+}
+
+function refreshHeatmap() {
+    createActivityHeatmap();
 }
 </script>
 {% endblock %}
